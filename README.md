@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![DARF Banner](https://img.shields.io/badge/DARF-Institutional%20Distributed%20AI-blue?style=for-the-badge)
+![DARF Banner](https://img.shields.io/badge/DARF-%20Distributed%20AI-blue?style=for-the-badge)
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-Distributed-EE4C2C?style=flat-square&logo=pytorch)](https://pytorch.org/)
