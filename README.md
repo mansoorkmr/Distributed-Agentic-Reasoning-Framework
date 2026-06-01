@@ -215,17 +215,9 @@ Infrastructure
 
 ---
 
-Installation Guide
+Installation Guide1
 
-1. Clone Repository
-
-git clone https://github.com/mansoorkmr/Distributed-Agentic-Reasoning-Framework.git
-
-cd Distributed-Agentic-Reasoning-Framework
-
----
-
-2. Create Environment
+1. Create Environment
 
 python3 -m venv venv
 
@@ -423,11 +415,9 @@ Future licensing policies will be added during public stabilization.
 
 Author
 
-Mansoor Ahmad Wani
-
 Distributed AI Systems Research
 Agentic AI Infrastructure Engineering
-HPC & Distributed Runtime Systems
+HPC & Distributed Runtime Systems team
 
 ---
 
