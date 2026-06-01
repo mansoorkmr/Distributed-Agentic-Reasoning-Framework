@@ -1,0 +1,67 @@
+runtime:
+
+  device: "cuda"
+
+  distributed_inference: true
+
+  mixed_precision: true
+
+  precision: "bf16"
+
+  gradient_checkpointing: true
+
+  compile_model: false
+
+model:
+
+  model_name: "mistralai/Mistral-7B-v0.1"
+
+  trust_remote_code: false
+
+  low_cpu_mem_usage: true
+
+  use_safetensors: true
+
+generation:
+
+  max_new_tokens: 512
+
+  temperature: 0.7
+
+  top_p: 0.95
+
+  top_k: 50
+
+  repetition_penalty: 1.1
+
+  do_sample: true
+
+  use_cache: true
+
+batching:
+
+  dynamic_batching: true
+
+  max_batch_size: 8
+
+  request_timeout_seconds: 30
+
+attention:
+
+  kv_cache_enabled: true
+
+  flash_attention: false
+
+optimization:
+
+  enable_memory_optimization: true
+
+  enable_inference_optimization: true
+
+monitoring:
+
+  log_gpu_memory: true
+
+  log_latency: true
+
+  log_generation_stats: true

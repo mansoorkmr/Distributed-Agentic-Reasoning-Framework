@@ -1,0 +1,71 @@
+cluster:
+
+  environment: "HPC"
+
+  scheduler: "SLURM"
+
+  distributed_backend: "nccl"
+
+  elastic_training: true
+
+runtime:
+
+  max_nodes: 4
+
+  gpus_per_node: 4
+
+  cpus_per_task: 8
+
+  memory_per_node_gb: 128
+
+  walltime: "72:00:00"
+
+distributed:
+
+  mixed_precision: true
+
+  precision: "fp16"
+
+  gradient_accumulation_steps: 2
+
+  gradient_clipping: 1.0
+
+  find_unused_parameters: false
+
+  static_graph: true
+
+slurm:
+
+  partition: "gpu"
+
+  qos: "normal"
+
+  exclusive: false
+
+  requeue: true
+
+checkpointing:
+
+  enabled: true
+
+  distributed_safe: true
+
+  save_on_rank_zero_only: true
+
+  checkpoint_interval_minutes: 30
+
+monitoring:
+
+  gpu_utilization_tracking: true
+
+  memory_tracking: true
+
+  node_health_checks: true
+
+recovery:
+
+  auto_resume: true
+
+  max_restart_attempts: 5
+
+  elastic_recovery: true

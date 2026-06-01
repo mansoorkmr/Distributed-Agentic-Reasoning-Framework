@@ -1,0 +1,83 @@
+datasets:
+
+  enable_streaming: true
+
+  distributed_loading: true
+
+  dataset_sharding: true
+
+  automatic_validation: true
+
+  cache_enabled: true
+
+  weighted_sampling: true
+
+  lineage_tracking: true
+
+  leakage_detection: true
+
+training_datasets:
+
+  - name: "c4"
+    weight: 0.30
+
+  - name: "pile"
+    weight: 0.25
+
+  - name: "wikitext103"
+    weight: 0.15
+
+  - name: "lambada"
+    weight: 0.10
+
+  - name: "domain_finance"
+    weight: 0.10
+
+  - name: "domain_healthcare"
+    weight: 0.10
+
+tokenization:
+
+  tokenizer_type: "AutoTokenizer"
+
+  max_sequence_length: 2048
+
+  truncation: true
+
+  padding: "max_length"
+
+  return_tensors: "pt"
+
+streaming:
+
+  prefetch_factor: 4
+
+  num_workers: 8
+
+  persistent_workers: true
+
+distributed:
+
+  world_size_aware: true
+
+  rank_sharding: true
+
+  deterministic_shuffling: true
+
+validation:
+
+  remove_duplicates: true
+
+  remove_empty_samples: true
+
+  utf8_validation: true
+
+  min_text_length: 8
+
+cache:
+
+  cache_processed_data: true
+
+  cache_tokenized_data: true
+
+  cache_directory: "data/cache"
