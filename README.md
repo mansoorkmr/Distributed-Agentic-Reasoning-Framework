@@ -1,114 +1,452 @@
-# Distributed Multi-Agent AI System with LLM Training Pipeline
+# Distributed Agentic Reasoning Framework (DARF)
 
-## Abstract
-This project presents a **production-grade, distributed multi-agent AI system** built on top of a **large language model (LLM) training pipeline**. The system integrates multi-domain datasets (reasoning, retrieval, dialogue, and language modeling) into a unified training architecture designed for **stability, reproducibility, and scalability on HPC environments**.
+<div align="center">
 
-The implementation addresses critical real-world issues in LLM training such as:
-- Gradient instability (NaN / overflow)
-- Dataset imbalance
-- Non-deterministic model loading
-- HPC execution failures
-- Memory fragmentation in GPU training
+![DARF Banner](https://img.shields.io/badge/DARF-Institutional%20Distributed%20AI-blue?style=for-the-badge)
 
-The result is a **robust, reproducible, and deployment-ready AI system**.
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-Distributed-EE4C2C?style=flat-square&logo=pytorch)](https://pytorch.org/)
+[![CUDA](https://img.shields.io/badge/CUDA-Accelerated-76B900?style=flat-square&logo=nvidia)](https://developer.nvidia.com/cuda-zone)
+[![SLURM](https://img.shields.io/badge/HPC-SLURM-black?style=flat-square)](https://slurm.schedmd.com/)
+[![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow?style=flat-square)](https://huggingface.co/)
+[![License](https://img.shields.io/badge/License-Research-green?style=flat-square)]()
 
----
-
-## 1. Problem Statement
-
-Modern AI systems suffer from fragmentation across:
-- reasoning models
-- retrieval systems
-- dialogue agents
-- distributed execution
-
-Additionally, training pipelines frequently fail due to:
-- unstable precision (FP16 failures)
-- dataset dominance bias
-- environment inconsistency
-- unreliable model loading in offline HPC environments
-
-This project solves these issues by designing a **unified, deterministic training and execution system**.
+</div>
 
 ---
 
-## 2. System Architecture
+# Overview
 
-### 2.1 High-Level Design
+Distributed Agentic Reasoning Framework (DARF) is a next-generation institutional-scale distributed AI systems framework engineered for:
 
----
-User Input
-↓
-Agent Manager (multi-agent orchestration)
-↓
-Planner → Task Decomposition
-↓
-LLM Engine (trained model)
-↓
-Aggregator → Final Response
+- Distributed LLM training
+- Multi-agent orchestration
+- Agentic reasoning systems
+- HPC-native execution
+- Retrieval-augmented intelligence
+- Distributed memory systems
+- Large-scale inference orchestration
+- Autonomous execution pipelines
 
-### 2.2 Core Modules
-
-| Module | Responsibility |
-|------|---------------|
-| `agents/` | Domain-specific agents (finance, health, task) |
-| `core/` | Orchestrator, planner, aggregator |
-| `llm/` | LLM inference engine |
-| `scripts/training/` | Training pipeline |
-| `hpc/` | SLURM job execution |
-| `logs/` | Training outputs and metrics |
-| `checkpoints/` | Model artifacts |
+DARF is designed using research-grade systems architecture principles inspired by:
+- distributed AI infrastructure
+- HPC orchestration systems
+- enterprise-scale runtime systems
+- large language model training stacks
+- modular multi-agent execution frameworks
 
 ---
 
-## 3. Key Features
+# Core System Architecture
 
-### 3.1 Deterministic Model Loading
-- Offline HuggingFace loading via fixed snapshot path
-- Eliminates network dependency and runtime failure
-
-### 3.2 Multi-Domain Training
-Datasets include:
-- Reasoning → GSM8K
-- Retrieval → MS MARCO, Natural Questions
-- Dialogue → MultiWOZ
-- Language Modeling → WikiText, C4
-
-### 3.3 Dataset Balancing
-- Interleaving strategy prevents dataset dominance
-- Ensures generalization across domains
-
-### 3.4 Training Stability
-- FP32 training (V100-safe)
-- Gradient clipping
-- Label masking (ignore padding tokens)
-- Eliminates NaN gradients
-
-### 3.5 HPC Execution
-- SLURM-based job execution
-- GPU-aware scheduling
-- Offline cache usage
-
-### 3.6 Observability
-- Training logs
-- GPU memory tracking
-- Loss and gradient monitoring
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                 Distributed Agentic Framework              │
+├─────────────────────────────────────────────────────────────┤
+│                    Agentic Execution Layer                 │
+│  Reasoning • Planning • Coordination • Tool Runtime       │
+├─────────────────────────────────────────────────────────────┤
+│                     Memory Systems Layer                   │
+│ Working • Episodic • Semantic • Retrieval Memory          │
+├─────────────────────────────────────────────────────────────┤
+│                    Knowledge/RAG Layer                     │
+│ Retrieval • Embeddings • Vector Search • Reranking        │
+├─────────────────────────────────────────────────────────────┤
+│                    LLM Runtime Layer                       │
+│ KV Cache • Generation • Transformer Runtime               │
+├─────────────────────────────────────────────────────────────┤
+│                Distributed Training Layer                  │
+│ DDP • FSDP • Process Groups • Synchronization             │
+├─────────────────────────────────────────────────────────────┤
+│                   HPC Infrastructure Layer                 │
+│ SLURM • GPU Scheduling • Runtime Profiling                │
+├─────────────────────────────────────────────────────────────┤
+│                     Data Pipeline Layer                    │
+│ Validation • Tokenization • Sharding • Caching            │
+└─────────────────────────────────────────────────────────────┘
 
 ---
 
-## 4. Project Structure
-Distributed_Multi_Agent_AI_System/
+Repository Structure
+
+Distributed-Agentic-Reasoning-Framework/
 │
-├── agents/ # Multi-agent implementations
-├── core/ # Orchestration and planning
-├── llm/ # Model interface
-├── scripts/training/ # Training pipeline
-├── hpc/job_scripts/ # SLURM scripts
-├── logs/ # Training logs
-├── checkpoints/ # Trained model
-├── config/ # Configuration
-├── README.md # Documentation
+├── agents/                 # Agentic reasoning systems
+├── api/                    # API services
+├── configs/                # System configurations
+├── core/                   # Core framework utilities
+├── data/                   # Data engineering systems
+├── docs/                   # Documentation
+├── evaluation/             # Benchmarking/evaluation
+├── experiments/            # Research experiments
+├── hpc/                    # HPC orchestration
+├── infrastructure/         # Infrastructure management
+├── llm/                    # LLM runtime systems
+├── memory/                 # Memory architectures
+├── scripts/                # Automation scripts
+├── tests/                  # Testing framework
+├── training/               # Distributed training engine
+└── utils/                  # Shared utilities
 
 ---
 
-## 5. Installation
+Major Framework Components
+
+Distributed Training Engine
+
+- Distributed Data Parallel (DDP)
+- Multi-node orchestration
+- GPU synchronization
+- Process group management
+- Metric reduction
+- Checkpoint management
+- Fault-tolerant execution
+
+---
+
+HPC Orchestration Engine
+
+- SLURM-native execution
+- GPU-aware scheduling
+- Runtime profiling
+- Node validation
+- Cluster orchestration
+- Multi-node deployment
+
+---
+
+Data Engineering Pipeline
+
+- Dataset registry
+- Distributed sharding
+- Validation pipelines
+- Tokenization systems
+- Cache management
+- High-throughput loaders
+
+---
+
+LLM Runtime Engine
+
+- Transformer runtime
+- KV cache systems
+- Token generation engine
+- Execution context management
+- Model loading orchestration
+
+---
+
+Agentic Reasoning Core
+
+- Multi-agent orchestration
+- Execution graph runtime
+- Tool execution engine
+- Reasoning decomposition
+- Distributed communication
+- Agent lifecycle management
+
+---
+
+Memory Systems
+
+- Working memory
+- Episodic memory
+- Semantic memory
+- Retrieval memory
+- Context routing
+- Memory consolidation
+
+---
+
+Technology Stack
+
+Core Languages
+
+- Python 3.10+
+- Bash
+- YAML
+
+---
+
+Deep Learning Stack
+
+- PyTorch
+- CUDA
+- NCCL
+- HuggingFace Transformers
+- Accelerate
+
+---
+
+Distributed Systems
+
+- PyTorch DDP
+- FSDP
+- Torch Distributed
+- SLURM
+- MPI-compatible infrastructure
+
+---
+
+Data Systems
+
+- HuggingFace Datasets
+- Apache Arrow
+- Tokenization pipelines
+- Distributed data loaders
+
+---
+
+Vector & Retrieval Systems
+
+- FAISS
+- Vector indexing
+- Retrieval orchestration
+- Embedding engines
+
+---
+
+Infrastructure
+
+- Linux HPC environments
+- Multi-GPU clusters
+- Distributed storage systems
+- Container-ready deployment
+
+---
+
+Installation Guide
+
+1. Clone Repository
+
+git clone https://github.com/mansoorkmr/Distributed-Agentic-Reasoning-Framework.git
+
+cd Distributed-Agentic-Reasoning-Framework
+
+---
+
+2. Create Environment
+
+python3 -m venv venv
+
+source venv/bin/activate
+
+---
+
+3. Install Dependencies
+
+pip install --upgrade pip
+
+pip install -r requirements.txt
+
+---
+
+4. Verify Installation
+
+python -m py_compile \
+training/**/*.py \
+agents/**/*.py \
+llm/**/*.py \
+hpc/**/*.py \
+data/**/*.py
+
+---
+
+Distributed Training Example
+
+Single Node
+
+python -m torch.distributed.run \
+--nproc_per_node=4 \
+training/train.py
+
+---
+
+Multi-Node SLURM Deployment
+
+sbatch scripts/slurm/train_cluster.sbatch
+
+---
+
+Demo Execution Pipeline
+
+Agent Runtime
+
+python scripts/run_agent_runtime.py
+
+---
+
+LLM Runtime
+
+python scripts/run_llm_runtime.py
+
+---
+
+Distributed Runtime
+
+python scripts/run_distributed_cluster.py
+
+---
+
+Deployment Architecture
+
++------------------------------------------------------+
+|                Distributed Cluster                   |
++------------------------------------------------------+
+|  Node 1        Node 2         Node N                 |
+|  GPU Pool      GPU Pool       GPU Pool               |
++------------------------------------------------------+
+|  DDP Runtime • NCCL • SLURM • CUDA                  |
++------------------------------------------------------+
+|  Shared Storage • Checkpoints • Logs                |
++------------------------------------------------------+
+
+---
+
+Research Objectives
+
+DARF is being engineered toward:
+
+- Distributed autonomous systems
+- Institutional-scale AI infrastructure
+- Multi-agent cognitive systems
+- Large-scale distributed reasoning
+- Retrieval-augmented execution systems
+- HPC-native AI orchestration
+- Long-context memory architectures
+
+---
+
+Current Development Status
+
+Completed
+
+- Distributed training infrastructure
+- HPC orchestration layer
+- Data engineering pipeline
+- LLM runtime systems
+- Agentic execution core
+- Distributed communication architecture
+
+---
+
+In Progress
+
+- Advanced memory systems
+- Tool execution runtime
+- Distributed RAG orchestration
+- Agent communication bus
+- Consensus coordination systems
+
+---
+
+Roadmap
+
+Phase 2.3
+
+- Working memory systems
+- Episodic memory runtime
+- Semantic memory indexing
+- Distributed message bus
+- Tool orchestration runtime
+
+---
+
+Phase 3
+
+- Full distributed inference engine
+- Autonomous orchestration agents
+- Hierarchical planning systems
+- Multi-agent distributed cognition
+
+---
+
+Phase 4
+
+- Cloud-native deployment
+- Kubernetes orchestration
+- Enterprise serving runtime
+- Research benchmarking suite
+
+---
+
+Security & Reliability Principles
+
+- Modular isolated architecture
+- Fault-tolerant execution
+- Distributed-safe synchronization
+- GPU-aware orchestration
+- HPC-grade runtime validation
+- Deterministic execution pipelines
+- Institutional repository hygiene
+
+---
+
+Development Principles
+
+DARF follows:
+
+- scalable systems engineering
+- modular architecture
+- distributed-first design
+- enterprise infrastructure principles
+- reproducible research standards
+- production-safe orchestration
+
+---
+
+Future Expansion
+
+Planned future capabilities include:
+
+- Distributed reinforcement learning
+- Autonomous planning agents
+- Cognitive memory systems
+- Long-context reasoning
+- Self-improving orchestration
+- Federated execution systems
+- Enterprise distributed inference
+
+---
+
+License
+
+This repository is currently maintained for:
+
+- research
+- experimentation
+- institutional infrastructure development
+
+Future licensing policies will be added during public stabilization.
+
+---
+
+Author
+
+Mansoor Ahmad Wani
+
+Distributed AI Systems Research
+Agentic AI Infrastructure Engineering
+HPC & Distributed Runtime Systems
+
+---
+
+Final Vision
+
+DARF aims to evolve into a fully distributed institutional-scale agentic intelligence infrastructure capable of:
+
+- distributed reasoning
+- autonomous orchestration
+- scalable memory systems
+- multi-agent cognition
+- HPC-native execution
+- enterprise AI runtime deployment
+
+---
+
+<div align="center">Distributed Agentic Reasoning Framework (DARF)
+
+Institutional-Scale Distributed AI Infrastructure
+
+</div>
+```
