@@ -1,442 +1,465 @@
-# Distributed Agentic Reasoning Framework (DARF)
+````markdown
+# DARF
+
+# Distributed Agentic Reasoning Framework
+
+> Institutional-Grade Multi-Agent Runtime and Execution Framework
+
+---
 
 <div align="center">
 
-![DARF Banner](https://img.shields.io/badge/DARF-%20Distributed%20AI-blue?style=for-the-badge)
+# DARF
+### Distributed Agentic Reasoning Framework
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-Distributed-EE4C2C?style=flat-square&logo=pytorch)](https://pytorch.org/)
-[![CUDA](https://img.shields.io/badge/CUDA-Accelerated-76B900?style=flat-square&logo=nvidia)](https://developer.nvidia.com/cuda-zone)
-[![SLURM](https://img.shields.io/badge/HPC-SLURM-black?style=flat-square)](https://slurm.schedmd.com/)
-[![Transformers](https://img.shields.io/badge/HuggingFace-Transformers-yellow?style=flat-square)](https://huggingface.co/)
-[![License](https://img.shields.io/badge/License-Research-green?style=flat-square)]()
+Enterprise Runtime Infrastructure for Multi-Agent Systems
 
 </div>
 
 ---
 
-# Overview
+## 📖 Overview
 
-Distributed Agentic Reasoning Framework (DARF) is a next-generation institutional-scale distributed AI systems framework engineered for:
+DARF (Distributed Agentic Reasoning Framework) is a modular, extensible, and production-oriented framework for building intelligent multi-agent systems.
 
-- Distributed LLM training
-- Multi-agent orchestration
-- Agentic reasoning systems
-- HPC-native execution
-- Retrieval-augmented intelligence
-- Distributed memory systems
-- Large-scale inference orchestration
-- Autonomous execution pipelines
+The framework provides:
 
-DARF is designed using research-grade systems architecture principles inspired by:
-- distributed AI infrastructure
-- HPC orchestration systems
-- enterprise-scale runtime systems
-- large language model training stacks
-- modular multi-agent execution frameworks
+| Capability | Description |
+|------------|-------------|
+| Agent Runtime Kernel | Core execution engine |
+| Agent Registry | Agent registration and discovery |
+| Lifecycle Management | Agent lifecycle control |
+| Execution State Tracking | Runtime execution visibility |
+| Runtime Context Propagation | Context-aware execution |
+| Metrics and Observability | Monitoring and analytics |
+| Health Monitoring | Runtime health checks |
+| Failure Isolation | Fault containment |
+| Concurrent Agent Execution | Parallel execution support |
+
+DARF is designed using enterprise software engineering principles and provides a foundation for large-scale agent orchestration systems.
 
 ---
 
-# Core System Architecture
+# 🏗️ Architecture
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                 Distributed Agentic Framework              │
-├─────────────────────────────────────────────────────────────┤
-│                    Agentic Execution Layer                 │
-│  Reasoning • Planning • Coordination • Tool Runtime       │
-├─────────────────────────────────────────────────────────────┤
-│                     Memory Systems Layer                   │
-│ Working • Episodic • Semantic • Retrieval Memory          │
-├─────────────────────────────────────────────────────────────┤
-│                    Knowledge/RAG Layer                     │
-│ Retrieval • Embeddings • Vector Search • Reranking        │
-├─────────────────────────────────────────────────────────────┤
-│                    LLM Runtime Layer                       │
-│ KV Cache • Generation • Transformer Runtime               │
-├─────────────────────────────────────────────────────────────┤
-│                Distributed Training Layer                  │
-│ DDP • FSDP • Process Groups • Synchronization             │
-├─────────────────────────────────────────────────────────────┤
-│                   HPC Infrastructure Layer                 │
-│ SLURM • GPU Scheduling • Runtime Profiling                │
-├─────────────────────────────────────────────────────────────┤
-│                     Data Pipeline Layer                    │
-│ Validation • Tokenization • Sharding • Caching            │
-└─────────────────────────────────────────────────────────────┘
+                        DARF
+
+        Distributed Agentic Reasoning Framework
+
+                                │
+                                ▼
+
+                        Agent Runtime
+
+                                │
+
+        ┌───────────────┬───────────────┬───────────────┐
+        │               │               │
+        ▼               ▼               ▼
+
+   Agent Registry   Lifecycle Mgmt   Runtime Metrics
+
+        │               │               │
+
+        ▼               ▼               ▼
+
+  Agent Discovery   State Control   Observability
+
+        │
+
+        ▼
+
+   Runtime Context
+
+        │
+
+        ▼
+
+ Execution State Manager
+
+        │
+
+        ▼
+
+     Agent Execution
+````
 
 ---
 
-Repository Structure
-
-Distributed-Agentic-Reasoning-Framework/
-│
-├── agents/                 # Agentic reasoning systems
-├── api/                    # API services
-├── configs/                # System configurations
-├── core/                   # Core framework utilities
-├── data/                   # Data engineering systems
-├── docs/                   # Documentation
-├── evaluation/             # Benchmarking/evaluation
-├── experiments/            # Research experiments
-├── hpc/                    # HPC orchestration
-├── infrastructure/         # Infrastructure management
-├── llm/                    # LLM runtime systems
-├── memory/                 # Memory architectures
-├── scripts/                # Automation scripts
-├── tests/                  # Testing framework
-├── training/               # Distributed training engine
-└── utils/                  # Shared utilities
+# ⚙️ Runtime Components
 
 ---
 
-Major Framework Components
+## 📌 Agent Registry
 
-Distributed Training Engine
+### Responsibilities
 
-- Distributed Data Parallel (DDP)
-- Multi-node orchestration
-- GPU synchronization
-- Process group management
-- Metric reduction
-- Checkpoint management
-- Fault-tolerant execution
+* Agent Registration
+* Agent Discovery
+* Agent Removal
+* Registry Snapshots
+* Registry Health Monitoring
 
----
+### Files
 
-HPC Orchestration Engine
-
-- SLURM-native execution
-- GPU-aware scheduling
-- Runtime profiling
-- Node validation
-- Cluster orchestration
-- Multi-node deployment
+```text
+agents/runtime/agent_registry.py
+```
 
 ---
 
-Data Engineering Pipeline
+## 📌 Lifecycle Manager
 
-- Dataset registry
-- Distributed sharding
-- Validation pipelines
-- Tokenization systems
-- Cache management
-- High-throughput loaders
+### Responsibilities
 
----
+* Agent State Management
+* Transition Validation
+* State Safety
+* Lifecycle Monitoring
 
-LLM Runtime Engine
+### Files
 
-- Transformer runtime
-- KV cache systems
-- Token generation engine
-- Execution context management
-- Model loading orchestration
+```text
+agents/runtime/lifecycle_manager.py
+```
 
----
+### Supported States
 
-Agentic Reasoning Core
-
-- Multi-agent orchestration
-- Execution graph runtime
-- Tool execution engine
-- Reasoning decomposition
-- Distributed communication
-- Agent lifecycle management
+```text
+REGISTERED
+INITIALIZING
+IDLE
+EXECUTING
+PAUSED
+FAILED
+DISABLED
+SHUTDOWN
+```
 
 ---
 
-Memory Systems
+## 📌 Execution State Manager
 
-- Working memory
-- Episodic memory
-- Semantic memory
-- Retrieval memory
-- Context routing
-- Memory consolidation
+### Responsibilities
 
----
+* Execution Tracking
+* Workflow Progress Monitoring
+* Runtime State Visibility
 
-Technology Stack
+### Files
 
-Core Languages
+```text
+agents/runtime/execution_state.py
+```
 
-- Python 3.10+
-- Bash
-- YAML
+### Supported States
 
----
-
-Deep Learning Stack
-
-- PyTorch
-- CUDA
-- NCCL
-- HuggingFace Transformers
-- Accelerate
+```text
+INITIALIZED
+QUEUED
+PLANNING
+REASONING
+DISPATCHING
+EXECUTING
+COMPLETED
+FAILED
+```
 
 ---
 
-Distributed Systems
+## 📌 Runtime Context
 
-- PyTorch DDP
-- FSDP
-- Torch Distributed
-- SLURM
-- MPI-compatible infrastructure
+### Responsibilities
 
----
+* Request Tracking
+* Metadata Propagation
+* Timing Information
+* Failure Diagnostics
 
-Data Systems
+### Files
 
-- HuggingFace Datasets
-- Apache Arrow
-- Tokenization pipelines
-- Distributed data loaders
+```text
+agents/runtime/runtime_context.py
+```
 
 ---
 
-Vector & Retrieval Systems
+## 📌 Runtime Metrics
 
-- FAISS
-- Vector indexing
-- Retrieval orchestration
-- Embedding engines
+### Responsibilities
+
+* Execution Metrics
+* Latency Monitoring
+* Throughput Tracking
+* Success Rates
+* Failure Rates
+
+### Files
+
+```text
+agents/runtime/runtime_metrics.py
+```
+
+### Tracked Metrics
+
+```text
+Registered Agents
+Active Agents
+
+Executions Started
+Executions Completed
+Executions Failed
+
+Latency
+Throughput
+
+Success Rate
+Failure Rate
+```
 
 ---
 
-Infrastructure
+## 📌 Runtime Kernel
 
-- Linux HPC environments
-- Multi-GPU clusters
-- Distributed storage systems
-- Container-ready deployment
+### Responsibilities
 
----
+* Agent Execution
+* Context Creation
+* Lifecycle Integration
+* Registry Integration
+* Metrics Integration
 
-Installation Guide1
+### Files
 
-1. Create Environment
-
-python3 -m venv venv
-
-source venv/bin/activate
-
----
-
-3. Install Dependencies
-
-pip install --upgrade pip
-
-pip install -r requirements.txt
+```text
+agents/runtime/agent_runtime.py
+```
 
 ---
 
-4. Verify Installation
+# ✅ Runtime Validation
 
+The runtime layer is validated through dedicated integration test suites.
+
+---
+
+## 🧪 Registry Test Suite
+
+```bash
+python -m tests.runtime.test_agent_registry
+```
+
+### Coverage
+
+* Registration
+* Duplicate Registration Protection
+* Lookup
+* Listing
+* Snapshots
+* Health Checks
+* Unregistration
+
+### Expected Output
+
+```text
+ALL REGISTRY TESTS PASSED
+```
+
+---
+
+## 🧪 Runtime Test Suite
+
+```bash
+python -m tests.runtime.test_agent_runtime
+```
+
+### Coverage
+
+* Registration
+* Listing
+* Unregistration
+* Successful Execution
+* Failure Handling
+* Health Checks
+* Concurrent Execution
+
+### Expected Output
+
+```text
+ALL RUNTIME TESTS PASSED
+```
+
+---
+
+# 🔨 Build Validation
+
+### Compile all runtime modules
+
+```bash
 python -m py_compile \
-training/**/*.py \
-agents/**/*.py \
-llm/**/*.py \
-hpc/**/*.py \
-data/**/*.py
+agents/runtime/*.py
+```
+
+### Compile runtime tests
+
+```bash
+python -m py_compile \
+tests/runtime/*.py
+```
 
 ---
 
-Distributed Training Example
+# 🚀 Demonstration Commands
 
-Single Node
-
-python -m torch.distributed.run \
---nproc_per_node=4 \
-training/train.py
+These commands can be used during project demonstrations, reviews, viva sessions, technical evaluations, and deployment walkthroughs.
 
 ---
 
-Multi-Node SLURM Deployment
+## 1️⃣ Verify Clean Repository
 
-sbatch scripts/slurm/train_cluster.sbatch
+```bash
+git status
+```
 
----
+### Expected
 
-Demo Execution Pipeline
-
-Agent Runtime
-
-python scripts/run_agent_runtime.py
-
----
-
-LLM Runtime
-
-python scripts/run_llm_runtime.py
+```text
+nothing to commit, working tree clean
+```
 
 ---
 
-Distributed Runtime
+## 2️⃣ Show Runtime Architecture
 
-python scripts/run_distributed_cluster.py
+```bash
+tree agents/runtime
+```
 
----
+### or
 
-Deployment Architecture
-
-+------------------------------------------------------+
-|                Distributed Cluster                   |
-+------------------------------------------------------+
-|  Node 1        Node 2         Node N                 |
-|  GPU Pool      GPU Pool       GPU Pool               |
-+------------------------------------------------------+
-|  DDP Runtime • NCCL • SLURM • CUDA                  |
-+------------------------------------------------------+
-|  Shared Storage • Checkpoints • Logs                |
-+------------------------------------------------------+
+```bash
+find agents/runtime -name "*.py" | sort
+```
 
 ---
 
-Research Objectives
+## 3️⃣ Compile Runtime
 
-DARF is being engineered toward:
-
-- Distributed autonomous systems
-- Institutional-scale AI infrastructure
-- Multi-agent cognitive systems
-- Large-scale distributed reasoning
-- Retrieval-augmented execution systems
-- HPC-native AI orchestration
-- Long-context memory architectures
+```bash
+python -m py_compile \
+agents/runtime/*.py
+```
 
 ---
 
-Current Development Status
+## 4️⃣ Run Registry Validation
 
-Completed
-
-- Distributed training infrastructure
-- HPC orchestration layer
-- Data engineering pipeline
-- LLM runtime systems
-- Agentic execution core
-- Distributed communication architecture
+```bash
+python -m tests.runtime.test_agent_registry
+```
 
 ---
 
-In Progress
+## 5️⃣ Run Runtime Validation
 
-- Advanced memory systems
-- Tool execution runtime
-- Distributed RAG orchestration
-- Agent communication bus
-- Consensus coordination systems
+```bash
+python -m tests.runtime.test_agent_runtime
+```
 
 ---
 
-Roadmap
+## 6️⃣ Full Validation
 
-Phase 2.3
-
-- Working memory systems
-- Episodic memory runtime
-- Semantic memory indexing
-- Distributed message bus
-- Tool orchestration runtime
-
----
-
-Phase 3
-
-- Full distributed inference engine
-- Autonomous orchestration agents
-- Hierarchical planning systems
-- Multi-agent distributed cognition
+```bash
+python -m py_compile \
+agents/runtime/*.py \
+tests/runtime/*.py && \
+python -m tests.runtime.test_agent_registry && \
+python -m tests.runtime.test_agent_runtime
+```
 
 ---
 
-Phase 4
-
-- Cloud-native deployment
-- Kubernetes orchestration
-- Enterprise serving runtime
-- Research benchmarking suite
-
----
-
-Security & Reliability Principles
-
-- Modular isolated architecture
-- Fault-tolerant execution
-- Distributed-safe synchronization
-- GPU-aware orchestration
-- HPC-grade runtime validation
-- Deterministic execution pipelines
-- Institutional repository hygiene
-
----
-
-Development Principles
+# 🏛️ Engineering Principles
 
 DARF follows:
 
-- scalable systems engineering
-- modular architecture
-- distributed-first design
-- enterprise infrastructure principles
-- reproducible research standards
-- production-safe orchestration
+* Modular Architecture
+* Strong Typing
+* Explicit State Machines
+* Structured Error Handling
+* Runtime Observability
+* Failure Isolation
+* Concurrent Execution Safety
+* Test-Driven Validation
 
 ---
 
-Future Expansion
+# 📊 Current Project Status
 
-Planned future capabilities include:
+## Runtime Layer
 
-- Distributed reinforcement learning
-- Autonomous planning agents
-- Cognitive memory systems
-- Long-context reasoning
-- Self-improving orchestration
-- Federated execution systems
-- Enterprise distributed inference
-
----
-
-License
-
-This repository is currently maintained for:
-
-- research
-- experimentation
-- institutional infrastructure development
-
-Future licensing policies will be added during public stabilization.
+```text
+Runtime Exceptions           COMPLETE
+Runtime Metrics              COMPLETE
+Runtime Context              COMPLETE
+Execution State Manager      COMPLETE
+Lifecycle Manager            COMPLETE
+Agent Registry               COMPLETE
+Agent Runtime                COMPLETE
+Runtime Validation           COMPLETE
+```
 
 ---
 
-Author
+## Validation Status
 
-Distributed AI Systems Research
-Agentic AI Infrastructure Engineering
-HPC & Distributed Runtime Systems team
-
----
-
-Final Vision
-
-DARF aims to evolve into a fully distributed institutional-scale agentic intelligence infrastructure capable of:
-
-- distributed reasoning
-- autonomous orchestration
-- scalable memory systems
-- multi-agent cognition
-- HPC-native execution
-- enterprise AI runtime deployment
+```text
+Registry Tests               PASSING
+Runtime Tests                PASSING
+Compilation                  PASSING
+```
 
 ---
 
-<div align="center">Distributed Agentic Reasoning Framework (DARF)
+# 🛣️ Roadmap
 
-Institutional-Scale Distributed AI Infrastructure
+## Next Components
+
+```text
+Agent Executor
+
+Planning Engine
+
+Task Routing
+
+Execution Fabric
+
+Agent Collaboration Layer
+
+Distributed Orchestration
+
+Memory Systems
+
+Reasoning Engine
+```
+
+---
+
+# 👨‍💻 Author
+
+### DARF Runtime Systems Division
+
+Distributed Agentic Reasoning Framework
+
+---
+
+<div align="center">
+
+Built for Enterprise-Scale Multi-Agent Runtime Systems
+
+DARF • Distributed Agentic Reasoning Framework
 
 </div>
 ```
