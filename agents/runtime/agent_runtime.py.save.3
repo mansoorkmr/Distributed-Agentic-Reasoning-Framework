@@ -67,8 +67,8 @@ from agents.runtime.execution_state import (
 
 from agents.runtime.lifecycle_manager import (
     AgentLifecycleManager,
-    AgentLifecycleState,
 )
+
 from agents.runtime.exceptions import (
     AgentNotFoundError,
     RuntimeValidationError,
@@ -124,6 +124,7 @@ class AgentExecutionResult:
     latency_ms: float = 0.0
 
     execution_state: str = ""
+
 # ============================================================
 # AGENT RUNTIME
 # ============================================================
@@ -154,10 +155,8 @@ class AgentRuntime:
             RuntimeMetrics()
         )
 
-        # Shared lifecycle manager
-        # Registry owns lifecycle state.
         self._lifecycle = (
-            self._registry._lifecycle
+            AgentLifecycleManager()
         )
 
         self._active_contexts: Dict[
@@ -166,6 +165,7 @@ class AgentRuntime:
         ] = {}
 
         self._lock = asyncio.Lock()
+
     # ========================================================
     # LOOKUP
     # ========================================================
@@ -176,9 +176,8 @@ class AgentRuntime:
     ) -> BaseAgent:
 
         return (
-            self._registry.get_agent(
-                agent_id
-            )
+            await self._registry
+            .get_agent(agent_id)
         )
 
     async def list_agents(
@@ -186,7 +185,8 @@ class AgentRuntime:
     ):
 
         return (
-            self._registry.list_agents()
+            await self._registry
+            .list_agents()
         )
 
     async def registry_snapshot(
@@ -194,50 +194,9 @@ class AgentRuntime:
     ):
 
         return (
-            self._registry.snapshot()
+            await self._registry
+            .snapshot()
         )
-
-    # ========================================================
-    # REGISTRATION
-    # ========================================================
-
-    async def register_agent(
-        self,
-        agent_id: str,
-        agent: BaseAgent,
-    ) -> None:
-
-        if not agent_id.strip():
-
-            raise RuntimeValidationError(
-                "agent_id cannot be empty"
-            )
-
-        async with self._lock:
-
-            await self._registry.register_agent(
-                agent_id,
-                agent,
-            )
-
-            self._metrics.registered_agents += 1
-
-    async def unregister_agent(
-        self,
-        agent_id: str,
-    ) -> None:
-
-        async with self._lock:
-
-            await self._registry.unregister_agent(
-                agent_id
-            )
-
-            if (
-                self._metrics.registered_agents
-                > 0
-            ):
-                self._metrics.registered_agents -= 1
     # ========================================================
     # REGISTRATION
     # ========================================================
@@ -309,15 +268,6 @@ class AgentRuntime:
                 ),
         }
     # ========================================================
-    # METRICS
-    # ========================================================
-
-    def get_metrics(
-        self,
-    ) -> RuntimeMetrics:
-
-        return self._metrics
-    # ========================================================
     # VALIDATION
     # ========================================================
 
@@ -373,7 +323,8 @@ class AgentRuntime:
         try:
 
             agent = (
-                self._registry.get_agent(
+                await self._registry
+                .get_agent(
                     request.agent_id
                 )
             )
