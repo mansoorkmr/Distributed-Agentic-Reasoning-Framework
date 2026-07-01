@@ -82,6 +82,13 @@ class ExecutionGraph:
         default_factory=dict
     )
 
+    task_index: Dict[
+        str,
+        ExecutionTask,
+    ] = field(
+        default_factory=dict
+    )
+
     version: str = "1.0"
 
     def __post_init__(
@@ -92,7 +99,8 @@ class ExecutionGraph:
         """
 
         self._build_graph()
-            # ========================================================
+
+    # ========================================================
     # GRAPH CONSTRUCTION
     # ========================================================
 
@@ -102,6 +110,12 @@ class ExecutionGraph:
         """
         Construct adjacency lists.
         """
+
+        # Build the task index
+        for task in self.plan.tasks:
+            self.task_index[
+                task.task_id
+            ] = task
 
         for task in self.plan.tasks:
 
@@ -130,9 +144,22 @@ class ExecutionGraph:
                 ].add(
                     dependency,
                 )
-                    # ========================================================
+
+    # ========================================================
     # GRAPH QUERIES
     # ========================================================
+
+    def get_task(
+        self,
+        task_id: str,
+    ) -> ExecutionTask | None:
+        """
+        Return a task by ID.
+        """
+
+        return self.task_index.get(
+            task_id,
+        )
 
     def successors(
         self,
@@ -187,7 +214,8 @@ class ExecutionGraph:
             in self.adjacency.items()
             if not children
         ]
-        # ========================================================
+
+    # ========================================================
     # GRAPH VALIDATION
     # ========================================================
 
@@ -250,7 +278,8 @@ class ExecutionGraph:
                 return True
 
         return False
-            # ========================================================
+
+    # ========================================================
     # TOPOLOGICAL SORT
     # ========================================================
 
@@ -330,7 +359,8 @@ class ExecutionGraph:
             )
 
         return ordering
-        # ========================================================
+
+    # ========================================================
     # SCHEDULER SUPPORT
     # ========================================================
 
@@ -361,7 +391,8 @@ class ExecutionGraph:
                 )
 
         return ready
-        # ========================================================
+
+    # ========================================================
     # GRAPH STATISTICS
     # ========================================================
 
@@ -401,47 +432,8 @@ class ExecutionGraph:
             self.node_count()
             == 0
         )
-            # ========================================================
-    # GRAPH STATISTICS
+
     # ========================================================
-
-    def node_count(
-        self,
-    ) -> int:
-        """
-        Return total number of nodes.
-        """
-
-        return len(
-            self.adjacency,
-        )
-
-    def edge_count(
-        self,
-    ) -> int:
-        """
-        Return total number of edges.
-        """
-
-        return sum(
-            len(children)
-            for children
-            in self.adjacency.values()
-        )
-
-    def is_empty(
-        self,
-    ) -> bool:
-        """
-        Determine whether the graph
-        contains any nodes.
-        """
-
-        return (
-            self.node_count()
-            == 0
-        )
-        # ========================================================
     # SERIALIZATION
     # ========================================================
 
