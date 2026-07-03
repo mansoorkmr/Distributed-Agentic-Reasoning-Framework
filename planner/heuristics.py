@@ -2,29 +2,18 @@
 Distributed Agentic Reasoning Framework (DARF)
 Planner
 
-Task Decomposer
+Planning Heuristics
 
 Purpose
 -------
-Defines the canonical task decomposer used by the
-DARF Planner.
-
-The task decomposer converts high-level planning
-requests into executable tasks and wraps them in
-an ExecutionPlan.
+Defines the canonical heuristics used by the DARF Planner
+to evaluate, prioritize, and cost execution plans.
 
 Responsibilities
 ----------------
-- Request decomposition
-- Task generation
-- Execution Plan assembly
-- Initial dependency assignment
-
-Design Principles
------------------
-- Deterministic decomposition
-- Extensible architecture
-- Production-ready serialization
+- Task prioritization
+- Cost estimation
+- Plan depth estimation
 
 Thread Safety
 -------------
@@ -41,23 +30,23 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Dict
 
+# Both classes are correctly imported from the execution_plan module
 from execution.execution_plan import ExecutionPlan
 from execution.execution_plan import ExecutionTask
 
 __all__ = [
-    "TaskDecomposer",
+    "Heuristics",
 ]
 
 
 # ============================================================
-# TASK DECOMPOSER
+# PLANNING HEURISTICS
 # ============================================================
 
 @dataclass(slots=True)
-class TaskDecomposer:
+class Heuristics:
     """
-    Canonical task decomposer for translating
-    objectives into executable plans.
+    Canonical planning heuristics engine.
     """
 
     metadata: Dict[str, Any] = field(
@@ -67,52 +56,47 @@ class TaskDecomposer:
     version: str = "1.0"
 
     # ========================================================
-    # DECOMPOSITION
+    # PLAN OPTIMIZATION
     # ========================================================
 
-    def decompose(
+    def prioritize(
         self,
-        request: str,
+        plan: ExecutionPlan,
     ) -> ExecutionPlan:
         """
-        Decompose a high-level planning request 
-        into a structured execution plan.
+        Sort tasks in the execution plan in-place based on 
+        priority (highest priority first).
         """
-        plan = ExecutionPlan()
-
-        # Return empty plan if the request is null or empty
-        if not request:
-            return plan
-
-        # Generate the root execution task
-        # Aligned with ExecutionTask schema (task_name over description)
-        task = ExecutionTask(
-            task_name=request,
+        plan.tasks.sort(
+            key=lambda task: task.priority,
+            reverse=True,
         )
-
-        plan.add_task(
-            task,
-        )
-
-        # Set the root task for DAG validation
-        plan.root_task = task.task_id
 
         return plan
 
     # ========================================================
-    # HELPERS
+    # ESTIMATIONS
     # ========================================================
 
-    def task_count(
+    def estimated_cost(
         self,
-        request: str,
+        plan: ExecutionPlan,
     ) -> int:
         """
-        Return the number of generated tasks for a given request.
+        Calculate the estimated computational or temporal 
+        cost of the execution plan.
         """
-        return self.decompose(
-            request,
-        ).task_count()
+        return plan.task_count()
+
+    def estimated_depth(
+        self,
+        plan: ExecutionPlan,
+    ) -> int:
+        """
+        Calculate the estimated execution depth 
+        (longest path of dependencies) of the plan.
+        """
+        return plan.task_count()
 
     # ========================================================
     # SERIALIZATION
@@ -122,7 +106,7 @@ class TaskDecomposer:
         self,
     ) -> Dict[str, Any]:
         """
-        Serialize the task decomposer state to a dictionary.
+        Serialize the heuristics state to a dictionary.
         """
         return {
             "metadata": self.metadata,
@@ -133,7 +117,7 @@ class TaskDecomposer:
         self,
     ) -> str:
         """
-        Serialize the task decomposer state to a formatted JSON string.
+        Serialize the heuristics state to a formatted JSON string.
         """
         return json.dumps(
             self.to_dict(),
@@ -151,7 +135,7 @@ class TaskDecomposer:
         """
         Human-readable representation.
         """
-        return "TaskDecomposer"
+        return "Heuristics"
 
     def __repr__(
         self,
@@ -159,4 +143,4 @@ class TaskDecomposer:
         """
         Developer representation.
         """
-        return f"<TaskDecomposer version='{self.version}'>"
+        return f"<Heuristics version='{self.version}'>"

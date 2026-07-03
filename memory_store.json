@@ -1,0 +1,26 @@
+{
+    "episodic": {
+        "count": 1,
+        "episodes": [
+            "episode1"
+        ],
+        "metadata": {},
+        "version": "1.0"
+    },
+    "semantic": {
+        "count": 1,
+        "keys": [
+            "university"
+        ],
+        "metadata": {},
+        "version": "1.0"
+    },
+    "working": {
+        "count": 1,
+        "keys": [
+            "question"
+        ],
+        "metadata": {},
+        "version": "1.0"
+    }
+}

@@ -17,8 +17,6 @@ from memory.semantic_memory import SemanticMemory
 from memory.memory_policy import MemoryPolicy
 from memory.memory_metrics import MemoryMetrics
 from memory.memory_item import MemoryItem
-from memory.persistence.persistence_backend import PersistenceBackend
-from memory.persistence.snapshot_manager import SnapshotManager
 
 
 @dataclass(slots=True)
@@ -39,11 +37,6 @@ class MemoryManager:
     semantic: SemanticMemory = field(default_factory=SemanticMemory)
     policy: MemoryPolicy = field(default_factory=MemoryPolicy)
     metrics: MemoryMetrics = field(default_factory=MemoryMetrics)
-    
-    # --- Persistence Fields ---
-    persistence: PersistenceBackend = field(default_factory=PersistenceBackend)
-    snapshot_manager: SnapshotManager = field(default_factory=SnapshotManager)
-
     metadata: Dict[str, Any] = field(default_factory=dict)
     version: str = "1.0"
 
@@ -248,63 +241,6 @@ class MemoryManager:
         return self.metrics.to_dict()
 
     # ==================================================
-    # PERSISTENCE & SNAPSHOTS (New Additions)
-    # ==================================================
-    def save(self) -> None:
-        """
-        Persist current memory.
-        """
-        data = {
-            "working": self.working.to_dict(),
-            "semantic": self.semantic.to_dict(),
-            "episodic": self.episodic.to_dict(),
-        }
-        self.persistence.save_memory(data)
-
-    def load(self):
-        """
-        Load persisted memory.
-        """
-        data = self.persistence.load_memory()
-        
-        if not data:
-            return
-
-        self.working.clear()
-
-        for key in data.get("working", {}).get("keys", []):
-            self.working.set(key, None)
-
-        for key in data.get("semantic", {}).get("keys", []):
-            self.semantic.remember(key, None)
-
-        for key in data.get("episodic", {}).get("episodes", []):
-            self.episodic.add(
-                MemoryItem(
-                    key=key,
-                    value=None,
-                )
-            )
-
-    def create_snapshot(self):
-        """
-        Create memory snapshot.
-        """
-        return self.snapshot_manager.create_snapshot(
-            {
-                "working": self.working.to_dict(),
-                "semantic": self.semantic.to_dict(),
-                "episodic": self.episodic.to_dict(),
-            }
-        )
-
-    def restore_snapshot(self, snapshot_path: str):
-        return self.snapshot_manager.restore_snapshot(snapshot_path)
-
-    def list_snapshots(self):
-        return self.snapshot_manager.list_snapshots()
-
-    # ==================================================
     # SERIALIZATION & REPRESENTATION
     # ==================================================
     def to_dict(self):
@@ -314,8 +250,6 @@ class MemoryManager:
             "semantic": self.semantic.to_dict(),
             "policy": self.policy.to_dict(),
             "metrics": self.metrics.to_dict(),
-            "persistence": self.persistence.to_dict(),
-            "snapshot_manager": self.snapshot_manager.to_dict(),
             "metadata": self.metadata,
             "version": self.version,
         }
