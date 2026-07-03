@@ -159,7 +159,16 @@ class ExecutionResult:
 
     duration: Optional[float] = None
 
+    # Added output as an alias to result for orchestrator compatibility
     result: Any = None
+    
+    @property
+    def output(self) -> Any:
+        return self.result
+
+    @output.setter
+    def output(self, value: Any):
+        self.result = value
 
     metadata: Dict[
         str,

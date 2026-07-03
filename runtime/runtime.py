@@ -1,282 +1,182 @@
 """
-Distributed Agentic Reasoning Framework (DARF) - Runtime
+Distributed Agentic Reasoning Framework (DARF)
 
-Central orchestration layer coordinating all subsystems.
+Runtime
+
+Purpose
+-------
+Defines the canonical runtime for the DARF framework.
 """
 
 from __future__ import annotations
 
 import json
-import logging
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
-# Export explicitly to prevent namespace pollution
+# Runtime Components
+from runtime.runtime_context import RuntimeContext
+from runtime.runtime_config import RuntimeConfig
+from runtime.runtime_metrics import RuntimeMetrics
+from runtime.runtime_registry import RuntimeRegistry
+
+# Planning Components
+from planner.planner import Planner
+from planner.planner_result import PlannerResult
+
+# Execution Components
+from execution.execution_orchestrator import ExecutionOrchestrator
+
 __all__ = ["Runtime"]
 
-logger = logging.getLogger(__name__)
+# ============================================================
+# RUNTIME
+# ============================================================
 
-
+@dataclass(slots=True)
 class Runtime:
     """
-    Main DARF runtime orchestrator.
-    
-    Coordinates the planner, execution engine, memory manager,
-    agent registry, and message bus.
+    Canonical DARF runtime.
     """
 
-    def __init__(self, config: Optional[Any] = None) -> None:
-        """Initializes the DARF Runtime and its core subsystems."""
-        
-        # --------------------------------------------------
-        # Deferred Imports (Protects against Circular Imports)
-        # --------------------------------------------------
-        from planner.planner import Planner
-        from execution.execution_engine import ExecutionEngine
-        from memory.manager.memory_manager import MemoryManager
-        from agents.agent_registry import AgentRegistry
-        from communication.message_bus import MessageBus
-        
-        from runtime.runtime_state import RuntimeState
-        from runtime.runtime_config import RuntimeConfig
-        from runtime.runtime_context import RuntimeContext
-        from runtime.runtime_metrics import RuntimeMetrics
-        from runtime.runtime_registry import RuntimeRegistry
+    config: RuntimeConfig = field(default_factory=RuntimeConfig)
+    context: RuntimeContext = field(default_factory=RuntimeContext)
+    metrics: RuntimeMetrics = field(default_factory=RuntimeMetrics)
+    registry: RuntimeRegistry = field(default_factory=RuntimeRegistry)
+    planner: Planner = field(default_factory=Planner)
+    orchestrator: ExecutionOrchestrator = field(default_factory=ExecutionOrchestrator)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    version: str = "1.0"
 
-        self.config = config or RuntimeConfig()
-        self.state = RuntimeState()
-        self.context = RuntimeContext()
-        self.metrics = RuntimeMetrics()
-        self.registry = RuntimeRegistry()
+    # ============================================================
+    # INITIALIZATION
+    # ============================================================
 
-        # --------------------------------------------------
-        # Core subsystems
-        # --------------------------------------------------
-        self.planner = Planner()
-        self.execution_engine = ExecutionEngine()
-        self.memory_manager = MemoryManager()
-        self.agent_registry = AgentRegistry()
-        self.message_bus = MessageBus()
+    def __post_init__(self) -> None:
+        """Initialize the runtime."""
+        self.metrics.reset()
 
-        self._register_components()
-        self._build_context()
+    # ============================================================
+    # STATUS
+    # ============================================================
 
-    def _register_components(self) -> None:
-        """Registers all core subsystems into the runtime registry."""
-        self.registry.register("planner", self.planner)
-        self.registry.register("execution_engine", self.execution_engine)
-        self.registry.register("memory_manager", self.memory_manager)
-        self.registry.register("agent_registry", self.agent_registry)
-        self.registry.register("message_bus", self.message_bus)
+    def ready(self) -> bool:
+        return True
 
-    def _build_context(self) -> None:
-        """Attaches core subsystems to the runtime context."""
-        self.context.planner = self.planner
-        self.context.execution_engine = self.execution_engine
-        self.context.memory_manager = self.memory_manager
-        self.context.agent_registry = self.agent_registry
-        self.context.message_bus = self.message_bus
+    def planner_ready(self) -> bool:
+        return self.planner is not None
 
-    # ------------------------------------------------------
-    # Lifecycle Management
-    # ------------------------------------------------------
+    def orchestrator_ready(self) -> bool:
+        return self.orchestrator is not None
 
-    def initialize(self) -> None:
-        """Initializes runtime states and records startup metrics."""
-        self.state.initialize()
-        self.state.ready()
-        self.metrics.record_startup()
-        logger.info("DARF Runtime initialized.")
+    def registry_ready(self) -> bool:
+        return self.registry is not None
 
-    def start(self) -> None:
-        """Starts the runtime. Initializes automatically if not already ready."""
-        if not self.state.is_ready():
-            self.initialize()
-        
-        self.state.run()
-        logger.info("DARF Runtime started.")
+    # ============================================================
+    # AGENT REGISTRATION
+    # ============================================================
 
-    def stop(self) -> None:
-        """Stops the runtime and records shutdown metrics."""
-        self.state.stop()
-        self.metrics.record_shutdown()
-        logger.info("DARF Runtime stopped.")
+    def register_agent(self, name: str, agent: Any) -> None:
+        self.registry.register(name, agent)
 
-    # ------------------------------------------------------
-    # Health and Diagnostics
-    # ------------------------------------------------------
+    def unregister_agent(self, name: str) -> None:
+        self.registry.unregister(name)
 
-    def is_ready(self) -> bool:
-        """Returns True if the runtime is initialized and ready."""
-        return self.state.is_ready()
-
-    def is_running(self) -> bool:
-        """Returns True if the runtime is currently executing."""
-        return self.state.is_running()
-
-    def component(self, name: str) -> Any:
-        """Retrieves a registered component by its string name."""
+    def get_agent(self, name: str) -> Any:
         return self.registry.get(name)
 
-    def require_ready(self) -> None:
-        """
-        Ensures the runtime is ready or running.
-        
-        Raises:
-            RuntimeNotReadyError: If the runtime has not been initialized.
-        """
-        if not (self.state.is_ready() or self.state.is_running()):
-            from runtime.exceptions import RuntimeNotReadyError
-            raise RuntimeNotReadyError("Runtime has not been initialized.")
+    def has_agent(self, name: str) -> bool:
+        return self.registry.contains(name)
 
-    # ------------------------------------------------------
-    # Execution
-    # ------------------------------------------------------
+    def agent_count(self) -> int:
+        return self.registry.count()
 
-    def plan(self, request: str) -> Any:
-        """Generates an execution plan based on the request."""
-        self.require_ready()
+    # ============================================================
+    # EXECUTION
+    # ============================================================
+
+    def execute(self, objective: str) -> PlannerResult:
+        """Execute a user objective."""
+        if not objective:
+            raise ValueError("objective cannot be empty.")
+
+        # 1. Plan
+        planner_result = self.planner.plan(objective)
         self.metrics.record_request()
-        
-        result = self.planner.plan(request)
-        return result
 
-    def execute(self, execution_plan: Any, callables: Optional[Dict[str, Any]] = None) -> Any:
-        """Executes a previously generated execution plan."""
-        self.require_ready()
-        
-        if callables is None:
-            callables = {}
-
-        return self.execution_engine.execute(
-            execution_plan,
-            callables=callables,
-        )
-
-    def run(self, request: str, callables: Optional[Dict[str, Any]] = None) -> Any:
-        """End-to-end operation: plans the request and executes it."""
-        self.require_ready()
-
-        try:
-            plan_result = self.plan(request)
-            execution_results = self.execute(
-                plan_result.execution_plan, 
-                callables
-            )
-
-            self.memory_manager.remember_episode(
-                key=request,
-                value="completed",
-            )
-            return execution_results
-
-        except Exception as e:
+        if not planner_result.success:
             self.metrics.record_failure()
-            logger.error(f"Runtime execution failed: {e}")
-            raise
+            return planner_result
 
-    # ------------------------------------------------------
-    # Memory
-    # ------------------------------------------------------
+        # 2. Orchestrate
+        self.orchestrator.load_plan(planner_result.execution_plan)
+        
+        agents = {name: self.registry.get(name) for name in self.registry.names()}
+        self.orchestrator.execute(agents)
 
-    def remember(self, key: str, value: Any) -> None:
-        """Stores a key-value pair in the memory manager."""
-        self.memory_manager.remember(key, value)
+        self.metrics.record_success()
+        return planner_result
 
-    def recall(self, key: str) -> Any:
-        """Retrieves a value from the memory manager by key."""
-        return self.memory_manager.recall(key)
+    # ============================================================
+    # METRICS & STATS
+    # ============================================================
 
-    # ------------------------------------------------------
-    # Communication
-    # ------------------------------------------------------
+    def request_count(self) -> int:
+        return self.metrics.requests
 
-    def publish(self, message: Any) -> Any:
-        """Publishes a message to the message bus."""
-        return self.message_bus.publish(message)
+    def success_count(self) -> int:
+        # Corrected: Mapping to existing RuntimeMetrics API
+        return getattr(self.metrics, "success_count", 0)
 
-    def receive(self) -> Any:
-        """Receives a message from the message bus."""
-        return self.message_bus.receive()
+    def failure_count(self) -> int:
+        return self.metrics.failures
 
-    # ------------------------------------------------------
-    # Agents
-    # ------------------------------------------------------
+    def success_rate(self) -> float:
+        # Corrected: Using the method defined in RuntimeMetrics
+        if hasattr(self.metrics, "success_rate"):
+            return self.metrics.success_rate()
+        return 0.0
 
-    def register_agent(self, agent: Any) -> None:
-        """Registers an agent with the agent registry."""
-        self.agent_registry.register(agent)
-
-    def unregister_agent(self, agent_id: str) -> None:
-        """Unregisters an agent from the agent registry using its ID."""
-        self.agent_registry.unregister(agent_id)
-
-    def get_agent(self, agent_id: str) -> Any:
-        """Retrieves an agent from the registry by its ID."""
-        return self.agent_registry.get(agent_id)
-
-    # ------------------------------------------------------
-    # Maintenance
-    # ------------------------------------------------------
-
-    def clear(self) -> None:
-        """Clears runtime state without destroying components."""
-        self.context.clear()
-        self.registry.clear()
-        self.memory_manager.clear()
-        self.metrics.reset()
-        logger.info("Runtime state cleared.")
+    # ============================================================
+    # MAINTENANCE
+    # ============================================================
 
     def reset(self) -> None:
-        """Resets the runtime to its initial state."""
-        self.stop()
-        
-        from runtime.runtime_state import RuntimeState
-        from runtime.runtime_context import RuntimeContext
-        from runtime.runtime_registry import RuntimeRegistry
-        
-        self.state = RuntimeState()
-        self.context = RuntimeContext()
+        self.context.clear()
         self.metrics.reset()
-        self.registry = RuntimeRegistry()
+        self.orchestrator.reset()
+        self.metadata.clear()
 
-        # Re-register core components using the built-in helper methods
-        self._register_components()
-        self._build_context()
-        logger.info("Runtime successfully reset.")
-
-    # ------------------------------------------------------
-    # Serialization
-    # ------------------------------------------------------
+    # ============================================================
+    # SERIALIZATION
+    # ============================================================
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serializes the core runtime components to a dictionary."""
         return {
-            "state": self.state.to_dict(),
             "config": self.config.to_dict(),
             "context": self.context.to_dict(),
             "metrics": self.metrics.to_dict(),
             "registry": self.registry.to_dict(),
-            "version": "1.0",
+            "planner": self.planner.to_dict(),
+            "orchestrator": self.orchestrator.to_dict(),
+            "metadata": self.metadata,
+            "version": self.version,
         }
 
     def to_json(self) -> str:
-        """Serializes the core runtime components to a JSON string."""
-        return json.dumps(
-            self.to_dict(),
-            indent=4,
-            sort_keys=True,
-        )
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)
 
-    # ------------------------------------------------------
-    # Representation
-    # ------------------------------------------------------
+    # ============================================================
+    # REPRESENTATION
+    # ============================================================
 
     def __str__(self) -> str:
-        return f"Runtime({self.state.status.value})"
+        return f"Runtime({self.request_count()} requests)"
 
     def __repr__(self) -> str:
         return (
             f"<Runtime "
-            f"state='{self.state.status.value}' "
-            f"components={self.registry.count()}>"
+            f"requests={self.request_count()} "
+            f"success={self.success_count()} "
+            f"failed={self.failure_count()}>"
         )

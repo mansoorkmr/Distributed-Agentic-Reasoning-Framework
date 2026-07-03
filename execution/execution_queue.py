@@ -9,28 +9,31 @@ Purpose
 Defines the canonical execution queue used by the
 DARF Execution Fabric.
 
-The queue provides a thread-safe abstraction for
-storing execution requests before they are processed
-by execution workers.
+The execution queue is responsible for storing tasks
+that are waiting to be executed by the execution
+workers.
 
 Responsibilities
 ----------------
-- FIFO execution queue
-- Thread-safe enqueue/dequeue
+- FIFO task queue
+- Task insertion
+- Task removal
 - Queue inspection
-- Capacity management
-- Future distributed queue compatibility
+- Queue statistics
+- Serialization
 
 Design Principles
 -----------------
-- Thread-safe
-- Strong typing
-- Backend agnostic
-- Production ready
+- Simple FIFO queue
+- Deterministic ordering
+- Thread-safe ready
+- Production-ready
 
 Thread Safety
 -------------
-Thread-safe.
+Currently single-threaded.
+Can be upgraded using locks without changing
+the public API.
 
 Author
 ------
@@ -39,15 +42,17 @@ Distributed Agentic Reasoning Framework (DARF)
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+import json
+from collections import deque
+from dataclasses import dataclass, field
+from typing import Any, Deque, Dict, Optional
 
-from queue import Empty
-from queue import Full
-from queue import Queue
+from execution.execution_plan import ExecutionTask
 
-from typing import Any
-from typing import Optional
+
+__all__ = [
+    "ExecutionQueue",
+]
 
 
 # ============================================================
@@ -58,174 +63,267 @@ from typing import Optional
 @dataclass(slots=True)
 class ExecutionQueue:
     """
-    Canonical execution queue.
+    Canonical FIFO execution queue.
+
+    Stores execution tasks before they are executed
+    by execution workers.
     """
 
-    max_size: int = 0
+    queue: Deque[ExecutionTask] = field(
+        default_factory=deque,
+    )
+
+    metadata: Dict[str, Any] = field(
+        default_factory=dict,
+    )
 
     version: str = "1.0"
 
-    _queue: Queue = field(
-        init=False,
-        repr=False,
-    )
-
-    def __post_init__(
-        self,
-    ) -> None:
-        """
-        Initialize the underlying queue.
-        """
-
-        if self.max_size < 0:
-            raise ValueError(
-                "max_size must be >= 0."
-            )
-
-        self._queue = Queue(
-            maxsize=self.max_size
-        )
-            # ========================================================
+    # ========================================================
     # QUEUE OPERATIONS
     # ========================================================
 
     def enqueue(
         self,
-        item: Any,
-        *,
-        block: bool = True,
-        timeout: Optional[float] = None,
-    ) -> None:
+        task: ExecutionTask,
+    ) -> bool:
         """
-        Insert an item into the queue.
-        """
+        Add an execution task to the queue.
 
-        self._queue.put(
-            item,
-            block=block,
-            timeout=timeout,
-        )
-
-    def dequeue(
-        self,
-        *,
-        block: bool = True,
-        timeout: Optional[float] = None,
-    ) -> Any:
-        """
-        Remove and return the next item.
-        """
-
-        return self._queue.get(
-            block=block,
-            timeout=timeout,
-        )
-
-    def peek(
-        self,
-    ) -> Optional[Any]:
-        """
-        Return the next queued item
-        without removing it.
+        Parameters
+        ----------
+        task : ExecutionTask
+            Task to enqueue.
 
         Returns
         -------
-        Optional[Any]
-            The next queued item or None
-            if the queue is empty.
+        bool
+            True if successfully added.
         """
+        if not isinstance(task, ExecutionTask):
+            raise TypeError("task must be an ExecutionTask.")
 
-        with self._queue.mutex:
-            if not self._queue.queue:
-                return None
+        self.queue.append(task)
+        return True
 
-            return self._queue.queue[0]
-            # ========================================================
-    # QUEUE STATUS
+    def dequeue(self) -> Optional[ExecutionTask]:
+        """
+        Remove and return the next task.
+
+        Returns
+        -------
+        ExecutionTask | None
+        """
+        if self.is_empty():
+            return None
+
+        return self.queue.popleft()
+
+    def peek(self) -> Optional[ExecutionTask]:
+        """
+        Return the next task without removing it.
+        """
+        if self.is_empty():
+            return None
+
+        return self.queue[0]
+
+    # ========================================================
+    # SEARCH
     # ========================================================
 
-    def size(
+    def contains(
         self,
-    ) -> int:
-        """
-        Return queue size.
-        """
-
-        return self._queue.qsize()
-
-    def is_empty(
-        self,
+        task_id: str,
     ) -> bool:
         """
-        Return True if queue is empty.
+        Determine whether a task exists in the queue.
+
+        Parameters
+        ----------
+        task_id : str
+            Execution task ID.
+
+        Returns
+        -------
+        bool
         """
+        return self.get(task_id) is not None
 
-        return self._queue.empty()
-
-    def is_full(
+    def get(
         self,
+        task_id: str,
+    ) -> Optional[ExecutionTask]:
+        """
+        Return a task by ID.
+
+        Parameters
+        ----------
+        task_id : str
+
+        Returns
+        -------
+        ExecutionTask | None
+        """
+        for task in self.queue:
+            if task.task_id == task_id:
+                return task
+        return None
+
+    def remove(
+        self,
+        task_id: str,
     ) -> bool:
         """
-        Return True if queue is full.
-        """
+        Remove a task from the queue.
 
-        return self._queue.full()
+        Parameters
+        ----------
+        task_id : str
 
-    def clear(
-        self,
-    ) -> None:
+        Returns
+        -------
+        bool
+            True if removed.
+            False if not found.
         """
-        Remove all queued items.
-        """
+        task = self.get(task_id)
 
-        with self._queue.mutex:
-            self._queue.queue.clear()
-            self._queue.unfinished_tasks = 0
-                # ========================================================
+        if task is None:
+            return False
+
+        self.queue.remove(task)
+        return True
+
+    # ========================================================
+    # QUEUE STATE
+    # ========================================================
+
+    def clear(self) -> None:
+        """
+        Remove every task from the queue.
+        """
+        self.queue.clear()
+
+    def is_empty(self) -> bool:
+        """
+        Determine whether the queue is empty.
+        """
+        return len(self.queue) == 0
+
+    def size(self) -> int:
+        """
+        Return the number of queued tasks.
+        """
+        return len(self.queue)
+
+    def tasks(self) -> list[ExecutionTask]:
+        """
+        Return all queued tasks.
+
+        Returns
+        -------
+        list[ExecutionTask]
+            Snapshot of the queue.
+        """
+        return list(self.queue)
+
+    def task_ids(self) -> list[str]:
+        """
+        Return queued task IDs.
+
+        Returns
+        -------
+        list[str]
+        """
+        return [task.task_id for task in self.queue]
+
+    def front(self) -> Optional[ExecutionTask]:
+        """
+        Alias for peek().
+        """
+        return self.peek()
+
+    def back(self) -> Optional[ExecutionTask]:
+        """
+        Return the last queued task.
+        """
+        if self.is_empty():
+            return None
+
+        return self.queue[-1]
+
+    # ========================================================
     # SERIALIZATION
     # ========================================================
 
-    def to_dict(
-        self,
-    ) -> dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """
-        Serialize queue metadata.
+        Serialize the execution queue.
         """
-
         return {
             "size": self.size(),
-            "max_size": self.max_size,
-            "is_empty": self.is_empty(),
-            "is_full": self.is_full(),
+            "tasks": [
+                {
+                    "task_id": task.task_id,
+                    "task_name": task.task_name,
+                    "agent_id": task.agent_id,
+                    "callable_name": task.callable_name,
+                    "priority": task.priority,
+                    "state": task.state.value,
+                    "dependencies": list(task.dependencies),
+                    "metadata": task.metadata,
+                    "version": task.version,
+                }
+                for task in self.queue
+            ],
+            "metadata": self.metadata,
             "version": self.version,
         }
+
+    def to_json(self) -> str:
+        """
+        Serialize the execution queue to JSON.
+        """
+        return json.dumps(
+            self.to_dict(),
+            indent=4,
+            sort_keys=True,
+        )
 
     # ========================================================
     # REPRESENTATION
     # ========================================================
 
-    def __str__(
+    def __len__(self) -> int:
+        """
+        Return queue size.
+        """
+        return self.size()
+
+    def __iter__(self):
+        """
+        Iterate over queued tasks.
+        """
+        return iter(self.queue)
+
+    def __contains__(
         self,
-    ) -> str:
+        task_id: str,
+    ) -> bool:
+        """
+        Membership operator.
+        """
+        return self.contains(task_id)
+
+    def __str__(self) -> str:
         """
         Human-readable representation.
         """
+        return f"ExecutionQueue({self.size()} tasks)"
 
-        return (
-            f"ExecutionQueue("
-            f"{self.size()}/{self.max_size})"
-        )
-
-    def __repr__(
-        self,
-    ) -> str:
+    def __repr__(self) -> str:
         """
         Developer representation.
         """
-
-        return (
-            f"<ExecutionQueue "
-            f"size={self.size()} "
-            f"max_size={self.max_size}>"
-        )
-    
+        return f"<ExecutionQueue size={self.size()}>"
