@@ -1,24 +1,25 @@
 """
 Distributed Agentic Reasoning Framework (DARF)
-Agent Runtime
 
 Agent Registry
 
 Purpose
 -------
-Defines the canonical registry used to manage DARF
-agents.
+Maintains the collection of registered DARF agents.
 
 Responsibilities
 ----------------
-- Agent registration
-- Agent lookup
-- Capability search
-- Registry management
+- Register agents
+- Remove agents
+- Lookup agents
+- Enumerate agents
 
-Thread Safety
--------------
-Thread-safe.
+Design Principles
+-----------------
+- Fast lookup
+- Serializable
+- Thread-safe
+- Production-ready
 
 Author
 ------
@@ -28,209 +29,114 @@ Distributed Agentic Reasoning Framework (DARF)
 from __future__ import annotations
 
 import json
-
-from dataclasses import dataclass
-from dataclasses import field
-
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 from agents.agent import Agent
 
-__all__ = [
-    "AgentRegistry",
-]
+__all__ = ["AgentRegistry"]
+
 # ============================================================
 # AGENT REGISTRY
 # ============================================================
 
-
 @dataclass(slots=True)
 class AgentRegistry:
     """
-    Canonical agent registry.
+    Canonical DARF Agent Registry.
     """
 
-    agents: Dict[
-        str,
-        Agent,
-    ] = field(
-        default_factory=dict
-    )
-
-    metadata: Dict[
-        str,
-        Any,
-    ] = field(
-        default_factory=dict
-    )
-
+    agents: Dict[str, Agent] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
     version: str = "1.0"
-        # ========================================================
+
+    # ========================================================
     # REGISTRATION
     # ========================================================
 
-    def register(
-        self,
-        agent: Agent,
-    ) -> None:
+    def register(self, agent: Agent) -> None:
+        """Register an agent."""
+        if agent.agent_id in self.agents:
+            raise ValueError(f"Agent '{agent.agent_id}' already exists.")
+        self.agents[agent.agent_id] = agent
 
-        self.agents[
-            agent.agent_id
-        ] = agent
+    def unregister(self, agent_id: str) -> bool:
+        """Remove an agent. Returns True if removed, False if not found."""
+        if agent_id not in self.agents:
+            return False
+        del self.agents[agent_id]
+        return True
 
-    def unregister(
-        self,
-        agent_id: str,
-    ) -> None:
-
-        self.agents.pop(
-            agent_id,
-            None,
-        )
-          # ========================================================
+    # ========================================================
     # LOOKUP
     # ========================================================
 
-    def get(
-        self,
-        agent_id: str,
-    ) -> Optional[
-        Agent
-    ]:
+    def get(self, agent_id: str) -> Optional[Agent]:
+        """Retrieve an agent by ID."""
+        return self.agents.get(agent_id)
 
-        return self.agents.get(
-            agent_id
-        )
+    def contains(self, agent_id: str) -> bool:
+        """Check if an agent exists in the registry."""
+        return agent_id in self.agents
 
-    def find_by_name(
-        self,
-        name: str,
-    ) -> Optional[
-        Agent
-    ]:
-
-        for agent in self.agents.values():
-
-            if (
-                agent.name.lower()
-                == name.lower()
-            ):
-
-                return agent
-
-        return None
-
-    def find_by_capability(
-        self,
-        capability: str,
-    ) -> List[
-        Agent
-    ]:
-
-        return [
-
-            agent
-
-            for agent
-
-            in self.agents.values()
-
-            if agent.has_capability(
-                capability
-            )
-
-        ]
-          # ========================================================
-    # HELPERS
+    # ========================================================
+    # COLLECTION
     # ========================================================
 
-    def count(
-        self,
-    ) -> int:
+    def names(self) -> List[str]:
+        """Return a sorted list of registered agent IDs."""
+        return sorted(self.agents.keys())
 
-        return len(
-            self.agents
-        )
+    def values(self) -> List[Agent]:
+        """Return a list of all registered agents."""
+        return list(self.agents.values())
 
-    def is_empty(
-        self,
-    ) -> bool:
+    def items(self) -> Any:
+        """Return key-value pairs of the registry."""
+        return self.agents.items()
 
-        return (
-            self.count()
-            == 0
-        )
+    def count(self) -> int:
+        """Return number of agents."""
+        return len(self.agents)
 
-    def clear(
-        self,
-    ) -> None:
+    def is_empty(self) -> bool:
+        """Return True if no agents are registered."""
+        return self.count() == 0
 
+    def clear(self) -> None:
+        """Clear all registered agents and metadata."""
         self.agents.clear()
-            # ========================================================
+        self.metadata.clear()
+
+    # ========================================================
     # SERIALIZATION
     # ========================================================
 
-    def to_dict(
-        self,
-    ) -> Dict[
-        str,
-        Any,
-    ]:
-
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize registry state."""
         return {
-
-            "agents": [
-
-                agent.to_dict()
-
-                for agent
-
-                in self.agents.values()
-
-            ],
-
             "count": self.count(),
-
+            "agents": self.names(),
             "metadata": self.metadata,
-
             "version": self.version,
-
         }
 
-    def to_json(
-        self,
-    ) -> str:
+    def to_json(self) -> str:
+        """Serialize registry to JSON string."""
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)
 
-        return json.dumps(
-
-            self.to_dict(),
-
-            indent=4,
-
-            sort_keys=True,
-
-        )
-        # ========================================================
+    # ========================================================
     # REPRESENTATION
     # ========================================================
 
-    def __str__(
-        self,
-    ) -> str:
+    def __len__(self) -> int:
+        return self.count()
 
-        return (
-            f"AgentRegistry("
-            f"{self.count()} agents)"
-        )
+    def __contains__(self, agent_id: str) -> bool:
+        return self.contains(agent_id)
 
-    def __repr__(
-        self,
-    ) -> str:
+    def __str__(self) -> str:
+        return f"AgentRegistry({self.count()} agents)"
 
-        return (
-            f"<AgentRegistry "
-            f"count={self.count()}>"
-        )
+    def __repr__(self) -> str:
+        return f"<AgentRegistry count={self.count()}>"

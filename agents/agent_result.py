@@ -1,29 +1,24 @@
 """
 Distributed Agentic Reasoning Framework (DARF)
-Agent Runtime
 
 Agent Result
 
 Purpose
 -------
-Defines the canonical execution result produced by
-DARF agents.
+Defines the canonical result returned by every DARF agent.
 
 Responsibilities
 ----------------
-- Agent execution outcome
-- Execution timing
-- Result storage
-- Error reporting
-- Serialization
+- Store execution status, output, and error context
+- Provide high-precision execution timing
+- Handle robust serialization
 
-Thread Safety
--------------
-Thread-safe.
-
-Author
-------
-Distributed Agentic Reasoning Framework (DARF)
+Design Principles
+-----------------
+- Type-safe execution contracts
+- Immutable-style state management
+- Institutional-grade validation
+- Production-ready
 """
 
 from __future__ import annotations
@@ -31,148 +26,90 @@ from __future__ import annotations
 import json
 import time
 import uuid
+from dataclasses import dataclass, field
+from typing import Any, Dict, Optional
 
-from dataclasses import dataclass
-from dataclasses import field
+__all__ = ["AgentResult"]
 
-from datetime import datetime
-from datetime import timezone
-
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-
-__all__ = [
-    "AgentResult",
-]
 # ============================================================
 # AGENT RESULT
 # ============================================================
 
-
 @dataclass(slots=True)
 class AgentResult:
     """
-    Canonical agent execution result.
+    Canonical result produced by an agent.
     """
 
+    # Identity
     result_id: str = field(
-        default_factory=lambda: (
-            f"AGENTRES-{uuid.uuid4().hex.upper()}"
-        )
+        default_factory=lambda: f"AGENTRESULT-{uuid.uuid4().hex.upper()}"
     )
-
     agent_id: Optional[str] = None
-
     task_id: Optional[str] = None
-
-    success: bool = False
-
-    output: Any = None
-
-    error: Optional[str] = None
-
-    created_at: str = field(
-        default_factory=lambda: (
-            datetime.now(
-                timezone.utc
-            ).isoformat(timespec="seconds")
-        )
-    )
-
-    duration: float = 0.0
-
-    metadata: Dict[
-        str,
-        Any,
-    ] = field(
-        default_factory=dict
-    )
-
-    warnings: List[
-        str
-    ] = field(
-        default_factory=list
-    )
-
     version: str = "1.0"
 
+    # Status
+    success: bool = True
+    output: Any = None
+    error: Optional[str] = None
+    
+    # Timing
+    execution_time: float = 0.0
     _start_time: float = field(
-        init=False,
-        repr=False,
+        default_factory=time.perf_counter, 
+        init=False, 
+        repr=False
     )
 
-    def __post_init__(
-        self,
-    ) -> None:
-
-        self._start_time = time.perf_counter()
+    # Context
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
     # ========================================================
-    # STATE
+    # VALIDATION
     # ========================================================
 
-    def mark_success(
-        self,
-        output: Any = None,
-    ) -> None:
+    def __post_init__(self) -> None:
+        """Validate result integrity."""
+        if not self.result_id:
+            raise ValueError("result_id cannot be empty.")
+        if self.execution_time < 0:
+            raise ValueError("execution_time must be >= 0.")
+        if self.metadata is None:
+            self.metadata = {}
 
-        self.success = True
+    # ========================================================
+    # STATE MANAGEMENT
+    # ========================================================
 
+    def finalize(self, success: bool, output: Any = None, error: Optional[str] = None) -> None:
+        """
+        Finalize the result state and calculate precise duration.
+        Call this at the very end of an agent's run() method.
+        """
+        self.success = success
         self.output = output
-
-        self.duration = (
-            time.perf_counter()
-            - self._start_time
-        )
-
-    def mark_failure(
-        self,
-        error: str,
-    ) -> None:
-
-        self.success = False
-
         self.error = error
+        self.execution_time = time.perf_counter() - self._start_time
 
-        self.duration = (
-            time.perf_counter()
-            - self._start_time
-        )
+    def succeeded(self) -> bool:
+        return self.success
 
-    # ========================================================
-    # HELPERS
-    # ========================================================
+    def failed(self) -> bool:
+        return not self.success
 
-    def add_warning(
-        self,
-        warning: str,
-    ) -> None:
+    def has_output(self) -> bool:
+        return self.output is not None
 
-        self.warnings.append(
-            warning
-        )
-
-    def has_warnings(
-        self,
-    ) -> bool:
-
-        return bool(
-            self.warnings
-        )
+    def has_error(self) -> bool:
+        return self.error is not None
 
     # ========================================================
     # SERIALIZATION
     # ========================================================
 
-    def to_dict(
-        self,
-    ) -> Dict[
-        str,
-        Any,
-    ]:
-
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize result to dictionary."""
         return {
             "result_id": self.result_id,
             "agent_id": self.agent_id,
@@ -180,49 +117,22 @@ class AgentResult:
             "success": self.success,
             "output": self.output,
             "error": self.error,
-            "created_at": self.created_at,
-            "duration": self.duration,
-            "warnings": self.warnings,
+            "execution_time": round(self.execution_time, 6),
             "metadata": self.metadata,
             "version": self.version,
         }
 
-    def to_json(
-        self,
-    ) -> str:
-
-        return json.dumps(
-            self.to_dict(),
-            indent=4,
-            sort_keys=True,
-            default=str,
-        )
+    def to_json(self) -> str:
+        """Serialize result to JSON string."""
+        return json.dumps(self.to_dict(), indent=4, sort_keys=True)
 
     # ========================================================
     # REPRESENTATION
     # ========================================================
 
-    def __str__(
-        self,
-    ) -> str:
+    def __str__(self) -> str:
+        status = "SUCCESS" if self.success else "FAILED"
+        return f"AgentResult({status}, {self.execution_time:.4f}s)"
 
-        status = (
-            "success"
-            if self.success
-            else "failed"
-        )
-
-        return (
-            f"{status} "
-            f"({self.duration:.4f}s)"
-        )
-
-    def __repr__(
-        self,
-    ) -> str:
-
-        return (
-            f"<AgentResult "
-            f"id='{self.result_id}' "
-            f"success={self.success}>"
-        )
+    def __repr__(self) -> str:
+        return f"<AgentResult id='{self.result_id}' agent='{self.agent_id}' success={self.success}>"
