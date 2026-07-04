@@ -147,8 +147,8 @@ data/
 # MODEL CHECKPOINTS
 # ============================================================
 
-checkpoints/
-training/checkpoints/
+/checkpoints/
+/training/checkpoints/
 
 *.pt
 *.pth
@@ -165,8 +165,7 @@ training/checkpoints/
 # ============================================================
 
 exports/
-models/
-weights/
+/weights/
 
 # ============================================================
 # TRAINING ARTIFACTS
