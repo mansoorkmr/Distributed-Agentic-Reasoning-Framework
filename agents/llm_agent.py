@@ -80,7 +80,6 @@ class LLMAgent(BaseAgent):
         """
         Execute an LLM prompt within the DARF execution flow.
         """
-        # Safely pop 'prompt' to prevent duplicate kwargs collisions
         prompt = kwargs.pop("prompt", None)
 
         if prompt is None:
@@ -89,15 +88,23 @@ class LLMAgent(BaseAgent):
         if prompt is None:
             raise ValueError("No prompt supplied to the LLMAgent.")
 
-        # Store the active prompt in the context for logging/debugging
         context.set("prompt", prompt)
 
-        response = self.generate(prompt, **kwargs)
+        # Provider returns a ProviderResult
+        result = self.generate(prompt, **kwargs)
 
-        # Store the result in the shared context
-        context.set_output(self.agent_id, response)
+        # Raise if generation failed
+        if not result.success:
+            raise RuntimeError(result.content or "LLM generation failed.")
 
-        return response
+        # Store ONLY the generated text
+        context.set_output(
+            self.agent_id,
+            result.content,
+        )
+
+        # Return ONLY the generated text
+        return result.content
 
     # ========================================================
     # PROVIDER UTILITIES

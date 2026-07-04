@@ -1,4 +1,5 @@
 import DashboardLayout from "../layouts/DashboardLayout";
+import ChatPanel from "../components/chat/ChatPanel";
 
 function Dashboard() {
 
@@ -8,11 +9,7 @@ function Dashboard() {
 
             <div className="grid gap-6 md:grid-cols-2">
 
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-6">
-
-                    Chat Panel
-
-                </div>
+                <ChatPanel />
 
                 <div className="rounded-xl border border-slate-700 bg-slate-800 p-6">
 

@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from agents.llm_agent import LLMAgent
 from agents.agent_context import AgentContext
 
 from api.dependencies import (
     get_agent_context,
+    get_llm_agent,
 )
 
 from api.models.request import (
@@ -29,15 +29,8 @@ router = APIRouter(
 )
 
 # ============================================================
-# SHARED AGENT
-# ============================================================
-
-_llm_agent = LLMAgent()
-
-# ============================================================
 # POST /chat
 # ============================================================
-
 
 @router.post(
     "",
@@ -51,9 +44,13 @@ def chat(
         get_agent_context,
     ),
 
+    llm = Depends(
+        get_llm_agent,
+    ),
+
 ):
 
-    result = _llm_agent.execute(
+    result = llm.execute(
 
         context,
 

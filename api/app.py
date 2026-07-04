@@ -22,6 +22,9 @@ from api.routes.agents import router as agents_router
 from api.routes.memory import router as memory_router
 from api.routes.tools import router as tools_router
 
+# System Initialization
+from bootstrap import initialize
+
 
 # ============================================================
 # CONFIGURATION
@@ -59,6 +62,20 @@ app.add_middleware(
 
 # 2. Request Logging Middleware (Integrated)
 app.add_middleware(RequestLoggingMiddleware)
+
+
+# ============================================================
+# LIFECYCLE EVENTS
+# ============================================================
+
+@app.on_event("startup")
+async def startup_event() -> None:
+    """
+    Initialize the DARF application architecture.
+    Bootstraps the registry, agents, and LLM providers 
+    before accepting API traffic.
+    """
+    initialize()
 
 
 # ============================================================

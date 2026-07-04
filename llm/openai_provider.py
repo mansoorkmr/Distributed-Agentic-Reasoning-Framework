@@ -105,13 +105,21 @@ class OpenAIProvider(LLMProvider):
             )
 
         except Exception as exc:
+            import traceback
+
+            print("\n")
+            print("=" * 80)
+            print("OPENAI ERROR")
+            traceback.print_exc()
+            print("=" * 80)
+
             return ProviderResult(
                 provider_name=self.provider_name,
                 model_name=self.model_name,
                 success=False,
                 content=str(exc),
                 finish_reason="error",
-                latency=time.perf_counter() - start
+                latency=time.perf_counter() - start,
             )
 
     def chat(self, messages: List[Dict[str, str]], **kwargs: Any) -> ProviderResult:

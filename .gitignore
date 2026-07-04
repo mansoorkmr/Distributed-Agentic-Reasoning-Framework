@@ -248,6 +248,8 @@ snapshots/
 # SECURITY / SECRETS
 # ============================================================
 
+# Environment files
+.env
 .env.local
 .env.production
 .env.secret

@@ -2,171 +2,217 @@
 Distributed Agentic Reasoning Framework (DARF)
 
 Ollama Provider
-
-Purpose
--------
-Production implementation of the DARF LLMProvider interface 
-for local Ollama instances.
-
-Responsibilities
-----------------
-- Initialize local Ollama client
-- Generate text via Ollama models
-- Execute chat completions
-- Generate embeddings
-- Health monitoring
-
-Design Principles
------------------
-- Provider-agnostic interface
-- Lazy client initialization
-- Production-ready error handling
 """
 
 from __future__ import annotations
 
-import time
 import json
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List
 
+import requests
+
+from config import settings
 from llm.provider import LLMProvider
 from llm.provider_config import ProviderConfig
 from llm.provider_result import ProviderResult
 
-__all__ = ["OllamaProvider"]
 
 class OllamaProvider(LLMProvider):
-    """
-    Production-ready Ollama provider implementation.
-    """
 
-    def __init__(self, config: ProviderConfig) -> None:
+    def __init__(self, config: ProviderConfig):
+
         super().__init__(
             provider_name="Ollama",
-            model_name=config.model_name
+            model_name=config.model_name,
         )
+
         self.config = config
-        self._client: Any = None
 
-    # ========================================================
-    # CLIENT INITIALIZATION
-    # ========================================================
-
-    def _initialize_client(self) -> None:
-        """Lazily initialize the Ollama client."""
-        if self._client is not None:
-            return
-
-        try:
-            import ollama
-        except ImportError as exc:
-            raise ImportError(
-                "Ollama SDK not installed. Run: pip install ollama"
-            ) from exc
-
-        host = self.config.base_url or "http://localhost:11434"
-        self._client = ollama.Client(host=host)
-
-    @property
-    def client(self) -> Any:
-        self._initialize_client()
-        return self._client
-
-    # ========================================================
-    # HEALTH & STATUS
-    # ========================================================
+    def configured(self) -> bool:
+        return True
 
     def health_check(self) -> bool:
-        """Verify the local Ollama server is reachable."""
         try:
-            self.client.ps()
-            return True
+            r = requests.get(
+                f"{self.config.base_url}/api/tags",
+                timeout=5,
+            )
+            return r.status_code == 200
         except Exception:
             return False
 
-    # ========================================================
-    # EXECUTION API
-    # ========================================================
-
     def generate(self, prompt: str, **kwargs: Any) -> ProviderResult:
-        """Generate text using Ollama's generate API."""
+
         start = time.perf_counter()
+
+        payload = {
+            "model": kwargs.get(
+                "model",
+                self.config.model_name,
+            ),
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": kwargs.get(
+                    "temperature",
+                    self.config.temperature,
+                )
+            },
+        }
+
         try:
-            response = self.client.generate(
-                model=self.model_name,
-                prompt=prompt,
-                options={
-                    "temperature": kwargs.get("temperature", self.config.temperature),
-                    "top_p": kwargs.get("top_p", self.config.top_p),
-                }
+
+            r = requests.post(
+                f"{self.config.base_url}/api/generate",
+                json=payload,
+                timeout=300,
             )
-            
-            latency = time.perf_counter() - start
+
+            r.raise_for_status()
+
+            data = r.json()
+
             return ProviderResult(
                 provider_name=self.provider_name,
                 model_name=self.model_name,
                 success=True,
-                content=response.get("response", ""),
-                finish_reason="stop" if response.get("done") else None,
-                prompt_tokens=response.get("prompt_eval_count", 0),
-                completion_tokens=response.get("eval_count", 0),
-                latency=latency
+                content=data["response"],
+                finish_reason="stop",
+                latency=time.perf_counter() - start,
             )
+
         except Exception as exc:
+
             return ProviderResult(
-                success=False, 
-                content=str(exc), 
+                provider_name=self.provider_name,
+                model_name=self.model_name,
+                success=False,
+                content=str(exc),
                 finish_reason="error",
-                latency=time.perf_counter() - start
+                latency=time.perf_counter() - start,
             )
 
-    def chat(self, messages: List[Dict[str, str]], **kwargs: Any) -> ProviderResult:
-        """Execute a chat completion."""
+    def chat(
+        self,
+        messages: list[dict[str, str]],
+        **kwargs: Any,
+    ) -> ProviderResult:
+        """
+        Execute a chat conversation using Ollama.
+        """
+
         start = time.perf_counter()
+
+        payload = {
+            "model": kwargs.get(
+                "model",
+                self.config.model_name,
+            ),
+            "messages": messages,
+            "stream": False,
+            "options": {
+                "temperature": kwargs.get(
+                    "temperature",
+                    self.config.temperature,
+                )
+            },
+        }
+
         try:
-            response = self.client.chat(model=self.model_name, messages=messages, **kwargs)
-            message = response.get("message", {})
+
+            r = requests.post(
+                f"{self.config.base_url}/api/chat",
+                json=payload,
+                timeout=300,
+            )
+
+            r.raise_for_status()
+
+            data = r.json()
+
             return ProviderResult(
                 provider_name=self.provider_name,
                 model_name=self.model_name,
                 success=True,
-                content=message.get("content", ""),
-                prompt_tokens=response.get("prompt_eval_count", 0),
-                completion_tokens=response.get("eval_count", 0),
-                latency=time.perf_counter() - start
+                content=data["message"]["content"],
+                finish_reason="stop",
+                latency=time.perf_counter() - start,
             )
-        except Exception as exc:
-            return ProviderResult(success=False, content=str(exc))
 
-    def embed(self, text: str, **kwargs: Any) -> ProviderResult:
-        """Generate embeddings."""
+        except Exception as exc:
+
+            return ProviderResult(
+                provider_name=self.provider_name,
+                model_name=self.model_name,
+                success=False,
+                content=str(exc),
+                finish_reason="error",
+                latency=time.perf_counter() - start,
+            )
+
+    def embed(
+        self,
+        text: str,
+        **kwargs: Any,
+    ) -> ProviderResult:
+        """
+        Ollama embedding API.
+        """
+
         start = time.perf_counter()
+
+        payload = {
+            "model": kwargs.get(
+                "model",
+                self.config.model_name,
+            ),
+            "input": text,
+        }
+
         try:
-            response = self.client.embed(model=self.model_name, input=text)
+
+            r = requests.post(
+                f"{self.config.base_url}/api/embed",
+                json=payload,
+                timeout=300,
+            )
+
+            r.raise_for_status()
+
+            data = r.json()
+
             return ProviderResult(
                 provider_name=self.provider_name,
                 model_name=self.model_name,
                 success=True,
                 latency=time.perf_counter() - start,
-                metadata={"embedding": response.get("embeddings", [[]])[0]}
+                metadata={
+                    "embedding": data.get("embeddings"),
+                },
             )
+
         except Exception as exc:
-            return ProviderResult(success=False, content=str(exc))
 
-    # ========================================================
-    # CAPABILITIES & SERIALIZATION
-    # ========================================================
-
-    def supports_embeddings(self) -> bool: return True
-    def supports_streaming(self) -> bool: return True
+            return ProviderResult(
+                provider_name=self.provider_name,
+                model_name=self.model_name,
+                success=False,
+                content=str(exc),
+                finish_reason="error",
+                latency=time.perf_counter() - start,
+            )
 
     def to_dict(self) -> Dict[str, Any]:
-        data = super().to_dict()
-        data.update({
-            "config": self.config.to_dict(),
-            "client_initialized": self._client is not None,
-        })
-        return data
+
+        return {
+            "provider": self.provider_name,
+            "model": self.model_name,
+            "configured": self.configured(),
+        }
 
     def to_json(self) -> str:
-        return json.dumps(self.to_dict(), indent=4, sort_keys=True)
+        return json.dumps(
+            self.to_dict(),
+            indent=4,
+        )
