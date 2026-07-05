@@ -94,6 +94,30 @@ class ToolResponse(APIResponse):
 
 
 # ============================================================
+# AGENT INFO
+# ============================================================
+
+class AgentInfo(BaseModel):
+    """
+    Metadata describing a registered DARF agent.
+    """
+
+    id: str
+
+    name: str
+
+    description: str
+
+    version: str
+
+    status: str = "Ready"
+
+    capabilities: list[str] = Field(
+        default_factory=list,
+    )
+
+
+# ============================================================
 # AGENTS RESPONSE
 # ============================================================
 
@@ -102,7 +126,9 @@ class AgentsResponse(APIResponse):
     Response returned by GET /agents
     """
 
-    agents: list[str] = Field(
+    count: int = 0
+
+    agents: list[AgentInfo] = Field(
         default_factory=list,
     )
 
