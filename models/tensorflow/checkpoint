@@ -1,0 +1,14 @@
+model_checkpoint_path: "darf_model.ckpt"
+all_model_checkpoint_paths: "darf_model.ckpt"
+
+Framework:
+TensorFlow
+
+Evaluation Targets
+
+MMLU         : 83–87%
+GSM8K        : 90–94%
+HumanEval    : 78–85%
+
+Status:
+Placeholder checkpoint metadata.

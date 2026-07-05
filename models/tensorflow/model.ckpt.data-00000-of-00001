@@ -1,0 +1,9 @@
+DARF TensorFlow Weight Metadata
+
+Architecture:
+LlamaForCausalLM
+
+Status:
+Placeholder
+
+Repository excludes trained weights.

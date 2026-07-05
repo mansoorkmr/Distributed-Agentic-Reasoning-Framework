@@ -1,0 +1,7 @@
+{
+    "tokenizer_class": "AutoTokenizer",
+    "model_max_length": 2048,
+    "padding_side": "right",
+    "truncation_side": "right",
+    "status": "placeholder"
+}
