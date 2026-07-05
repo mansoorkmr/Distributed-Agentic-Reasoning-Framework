@@ -1,10 +1,33 @@
 import api from "../api/client";
 
-export async function getTools() {
+export interface ToolInfo {
 
-    const response = await api.get(
-        "/tools",
-    );
+    name: string;
+
+    status: string;
+
+    category: string;
+
+}
+
+export interface ToolResponse {
+
+    success: boolean;
+
+    message: string;
+
+    count: number;
+
+    capabilities: string[];
+
+    tools: ToolInfo[];
+
+}
+
+export async function getTools(): Promise<ToolResponse> {
+
+    const response = await api.get("/tools");
 
     return response.data;
+
 }

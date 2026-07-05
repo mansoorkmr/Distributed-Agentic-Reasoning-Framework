@@ -2,6 +2,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import ChatPanel from "../components/chat/ChatPanel";
 import AgentPanel from "../components/agents/AgentPanel";
 import MemoryPanel from "../components/memory/MemoryPanel";
+import ToolPanel from "../components/tools/ToolPanel";
 
 function Dashboard() {
     return (
@@ -10,9 +11,7 @@ function Dashboard() {
                 <ChatPanel />
                 <AgentPanel />
                 <MemoryPanel />
-                <div className="rounded-xl border border-slate-700 bg-slate-800 p-6">
-                    Tool Panel
-                </div>
+                <ToolPanel />
             </div>
         </DashboardLayout>
     );
