@@ -94,17 +94,39 @@ class MemoryResponse(APIResponse):
 
 
 # ============================================================
+# TOOL INFO
+# ============================================================
+
+class ToolInfo(BaseModel):
+    """
+    Registered tool metadata.
+    """
+
+    name: str
+
+    status: str = "Ready"
+
+    category: str = "General"
+
+
+# ============================================================
 # TOOL RESPONSE
 # ============================================================
 
 class ToolResponse(APIResponse):
     """
-    Response returned by tool execution.
+    Response returned by GET /tools
     """
 
-    tool: str
+    count: int = 0
 
-    output: Any = None
+    capabilities: list[str] = Field(
+        default_factory=list,
+    )
+
+    tools: list[ToolInfo] = Field(
+        default_factory=list,
+    )
 
 
 # ============================================================
