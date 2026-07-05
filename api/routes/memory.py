@@ -22,11 +22,8 @@ from api.models.response import (
 )
 
 router = APIRouter(
-
     prefix="/memory",
-
     tags=["Memory"],
-
 )
 
 
@@ -35,26 +32,31 @@ router = APIRouter(
 # ============================================================
 
 @router.get(
-
     "",
-
     response_model=MemoryResponse,
-
 )
 def get_memory(
-
     context: AgentContext = Depends(
         get_agent_context,
     ),
-
 ):
+    
+    memory_size = (
+        len(context.variables)
+        + len(context.outputs)
+    )
 
     return MemoryResponse(
-
         success=True,
-
-        message="Current runtime context.",
-
-        memory=context.to_dict(),
-
+        message="Memory status retrieved successfully.",
+        status="Active",
+        vector_store="FAISS",
+        embedding_model="all-MiniLM-L6-v2",
+        top_k=5,
+        memory_size=memory_size,
+        metrics={
+            "variables": context.variable_count(),
+            "outputs": context.output_count(),
+        },
+        context=context.to_dict(),
     )

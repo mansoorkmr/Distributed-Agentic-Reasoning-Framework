@@ -74,7 +74,21 @@ class MemoryResponse(APIResponse):
     Response returned by GET /memory
     """
 
-    memory: dict[str, Any] = Field(
+    status: str = "Active"
+
+    vector_store: str = "FAISS"
+
+    embedding_model: str = "all-MiniLM-L6-v2"
+
+    top_k: int = 5
+
+    memory_size: int = 0
+
+    metrics: dict[str, Any] = Field(
+        default_factory=dict,
+    )
+
+    context: dict[str, Any] = Field(
         default_factory=dict,
     )
 
