@@ -1,5 +1,6 @@
 export interface ChatRequest {
     prompt: string;
+    document_id?: string;
     temperature?: number;
     max_tokens?: number;
 }
