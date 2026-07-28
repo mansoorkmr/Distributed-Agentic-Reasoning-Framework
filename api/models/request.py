@@ -28,6 +28,11 @@ class ChatRequest(BaseModel):
 
     session_id: str | None = None
 
+    document_id: str | None = Field(
+        default=None,
+        description="Optional uploaded document ID for document-aware chat.",
+    )
+
     temperature: float = 0.7
 
     max_tokens: int = 1024

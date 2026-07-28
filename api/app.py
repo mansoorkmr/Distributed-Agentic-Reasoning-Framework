@@ -21,6 +21,7 @@ from api.routes.execute import router as execute_router
 from api.routes.agents import router as agents_router
 from api.routes.memory import router as memory_router
 from api.routes.tools import router as tools_router
+from api.routes.documents import router as documents_router
 
 # System Initialization
 from bootstrap import initialize
@@ -88,6 +89,7 @@ app.include_router(execute_router)
 app.include_router(agents_router)
 app.include_router(memory_router)
 app.include_router(tools_router)
+app.include_router(documents_router)
 
 # Register Global Exception Handlers (Integrated)
 register_exception_handlers(app)
