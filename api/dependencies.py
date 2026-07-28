@@ -11,6 +11,7 @@ from fastapi import HTTPException, status
 
 from agents.agent_context import AgentContext
 from agents.agent_manager import AgentManager
+from agents.memory_agent import MemoryAgent
 from bootstrap import get_application
 
 if TYPE_CHECKING:
@@ -23,6 +24,7 @@ __all__ = [
     "get_agent_manager",
     "get_agent_context",
     "get_llm_agent",
+    "get_memory_agent",
     "reset_dependencies",
 ]
 
@@ -58,6 +60,23 @@ def get_llm_agent() -> LLMAgent:
             detail="The 'llm' agent is not currently registered in the AgentManager."
         )
         
+    return agent  # type: ignore
+
+
+def get_memory_agent() -> MemoryAgent:
+    """
+    Dependency injection target to retrieve the shared MemoryAgent.
+    """
+    manager = get_agent_manager()
+
+    agent = manager.get("memory")
+
+    if agent is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The 'memory' agent is not currently registered."
+        )
+
     return agent  # type: ignore
 
 
