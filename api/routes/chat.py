@@ -17,6 +17,7 @@ from agents.agent_context import AgentContext
 from api.dependencies import (
     get_agent_context,
     get_llm_agent,
+    get_memory_agent,
 )
 
 from api.models.request import ChatRequest
@@ -49,6 +50,9 @@ def chat(
     llm=Depends(
         get_llm_agent,
     ),
+    memory=Depends(
+        get_memory_agent,
+    ),
 ):
     """
     Execute a normal or document-aware DARF chat request.
@@ -56,6 +60,13 @@ def chat(
 
     llm_prompt = request.prompt
     retrieved_chunks: list[str] = []
+
+    # ========================================================
+    # CONVERSATION MEMORY
+    # ========================================================
+    llm_prompt = memory.memory.augment_prompt(
+        llm_prompt,
+    )
 
     # ========================================================
     # DOCUMENT-AWARE RETRIEVAL
@@ -99,24 +110,24 @@ def chat(
         document_context = "\n\n---\n\n".join(
             retrieved_chunks
         )
-
         llm_prompt = f"""
-You are answering a question using an uploaded PDF document.
+Previous Conversation{llm_prompt}
 
-Use the DOCUMENT CONTEXT below as the primary source of information.
+--------------------------------------------------
 
-Do not invent information that is not supported by the document.
+DOCUMENT CONTEXT{document_context}
 
-If the answer cannot be determined from the document context,
-state that clearly.
+--------------------------------------------------
 
-DOCUMENT CONTEXT:
-{document_context}
+USER QUESTION{request.prompt}
 
-USER QUESTION:
-{request.prompt}
+Answer using the document whenever possible.
 
-ANSWER:
+If the answer is not contained in the document,
+say so clearly.
+
+If previous conversation is relevant,
+use it as well.
 """.strip()
 
     # ========================================================
@@ -137,6 +148,14 @@ ANSWER:
             detail=result.error
             or "LLM execution failed.",
         )
+
+    # ========================================================
+    # STORE CONVERSATION
+    # ========================================================
+    memory.memory.store(
+        request.prompt,
+        str(result.output),
+    )
 
     # ========================================================
     # RESPONSE METADATA
